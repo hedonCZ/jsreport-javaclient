@@ -1,0 +1,32 @@
+{
+    "items": [
+      {
+        "price": "itm#1 - price",
+        "currencySymbol": "K?",
+        "name": "itm#1 - name"
+      },
+      {
+        "price": "itm#2 - price",
+        "currencySymbol": "K?",
+        "name": "itm#2 - name"
+      }
+    ],
+    "invoice": {
+      "price": "tbd - price",
+      "created": "tbd - created",
+      "issue": "tbd - issue",
+      "constantSymbol": "tbd - constantSymbol",
+      "variableSymbol": "tbd - variableSymbol",
+      "specificSymbol": "tbd - specificSymbol"
+    },
+    "customer": {
+      "id": "tbd - cust.id",
+      "postal": "tbd - cust.postal",
+      "vatid": "tbd - cust.vatid",
+      "street": "tbd - cust.street",
+      "name": "tbd - cust.name",
+      "surname": "tbd - cust.surname",
+      "companyName": "tbd - cust.companyName",
+      "city": "tbd - cust.city"
+    }
+}
