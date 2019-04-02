@@ -1,0 +1,8 @@
+#
+# Download or clone files from this GitHub location
+# https://github.com/jsreport/jsreport/tree/master/docker/default
+#
+https://raw.githubusercontent.com/jsreport/jsreport/master/docker/default/Dockerfile
+https://raw.githubusercontent.com/jsreport/jsreport/master/docker/default/editConfig.js
+https://raw.githubusercontent.com/jsreport/jsreport/master/docker/default/run.sh
+

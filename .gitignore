@@ -19,5 +19,9 @@ hs_err_pid*
 # target
 target/
 
+# Dockerfile for integration testing server should be downloaded from URL in ./src/test/server/Dockerfile.source
+src/test/server/*
+!src/test/server/Dockerfile.source
+
 # my temp
 temp/
