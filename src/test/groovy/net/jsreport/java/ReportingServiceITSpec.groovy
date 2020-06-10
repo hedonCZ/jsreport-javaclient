@@ -1,13 +1,13 @@
 package net.jsreport.java
 
 
-import org.apache.http.conn.socket.PlainConnectionSocketFactory
 import org.apache.log4j.Logger
 import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import org.junit.experimental.categories.Category
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -18,13 +18,28 @@ class ReportingServiceITSpec extends Specification {
 
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
 
+    @Shared
     private ReportingService service
+    @Shared
+    private TemplateService crudService
+    @Shared
+    private Template testingTemplate
 
-    def setup() {
-        def serviceImpl = new ReportingServiceImpl()
-        serviceImpl.getRegistryBuilder().register("http", PlainConnectionSocketFactory.getSocketFactory())
-        serviceImpl.setServiceUri(new URI("http://localhost:9080/api/report"))
-        service = serviceImpl
+    def setupSpec() {
+        crudService = new TemplateServiceImpl("http://jsreport:9080")
+        service = new ReportingServiceImpl("http://jsreport:9080")
+
+        TemplateRequest templateRequest = new TemplateRequest()
+        templateRequest.setName("test-api")
+        templateRequest.setContent("<h1>${PDF_TEXT_CONTENT}</h1>")
+        templateRequest.setRecipe("chrome-pdf")
+        templateRequest.setEngine("handlebars")
+
+        testingTemplate = crudService.putTemplate(templateRequest)
+    }
+
+    def cleanupSpec() {
+        crudService.removeTemplate(testingTemplate._id)
     }
 
     @Unroll
@@ -43,8 +58,8 @@ class ReportingServiceITSpec extends Specification {
         where:
 
         renderRequest << [
-                new RenderRequest(template: new Template(name: "/test/test")),
-                new RenderRequest(template: new Template(shortid: "r1m0hAFU4"))
+                new RenderRequest(template: new Template(name: "/test-api")),
+                new RenderRequest(template: new Template(shortid: testingTemplate.shortid))
         ]
     }
 
