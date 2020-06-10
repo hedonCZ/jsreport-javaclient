@@ -1,4 +1,4 @@
-package net.jsreport.java;
+package net.jsreport.java.entity;
 
 import org.apache.http.Header;
 

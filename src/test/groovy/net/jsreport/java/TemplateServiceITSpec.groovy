@@ -1,7 +1,11 @@
 package net.jsreport.java
 
-
+import net.jsreport.java.entity.Template
+import net.jsreport.java.entity.TemplateRequest
+import net.jsreport.java.service.TemplateService
+import net.jsreport.java.service.TemplateServiceImpl
 import org.apache.log4j.Logger
+import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
 @Category(IntegrationTest.class)

@@ -1,4 +1,4 @@
-package net.jsreport.java;
+package net.jsreport.java.entity;
 
 public class TemplateRequest {
 

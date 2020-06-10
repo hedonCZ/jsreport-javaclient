@@ -1,5 +1,6 @@
-package net.jsreport.java;
+package net.jsreport.java.service;
 
+import net.jsreport.java.JsReportException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;

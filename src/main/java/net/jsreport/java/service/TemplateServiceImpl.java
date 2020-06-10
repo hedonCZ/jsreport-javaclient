@@ -1,6 +1,9 @@
-package net.jsreport.java;
+package net.jsreport.java.service;
 
 import com.google.gson.Gson;
+import net.jsreport.java.JsReportException;
+import net.jsreport.java.entity.Template;
+import net.jsreport.java.entity.TemplateRequest;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;

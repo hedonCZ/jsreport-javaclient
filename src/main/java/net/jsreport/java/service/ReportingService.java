@@ -1,6 +1,9 @@
-package net.jsreport.java;
+package net.jsreport.java.service;
 
-import java.net.URI;
+import net.jsreport.java.JsReportException;
+import net.jsreport.java.entity.RenderRequest;
+import net.jsreport.java.entity.Report;
+
 import java.util.concurrent.Future;
 
 public interface ReportingService {

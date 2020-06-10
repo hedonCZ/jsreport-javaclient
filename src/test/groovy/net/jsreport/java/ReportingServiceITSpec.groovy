@@ -1,6 +1,13 @@
 package net.jsreport.java
 
-
+import net.jsreport.java.entity.RenderRequest
+import net.jsreport.java.entity.Report
+import net.jsreport.java.entity.Template
+import net.jsreport.java.entity.TemplateRequest
+import net.jsreport.java.service.ReportingService
+import net.jsreport.java.service.ReportingServiceImpl
+import net.jsreport.java.service.TemplateService
+import net.jsreport.java.service.TemplateServiceImpl
 import org.apache.log4j.Logger
 import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
