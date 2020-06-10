@@ -1,6 +1,6 @@
-package net.jsreport.java.entity;
+package net.jsreport.java.dto;
 
-public class TemplateRequest {
+public class CreateTemplateRequest {
 
     private String _id;
 

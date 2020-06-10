@@ -22,7 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-public abstract class HttpService {
+public class HttpRemoteServiceImpl implements HttpRemoteService {
 
     public static final String HEADER_FILE_EXTENSION = "File-Extension";
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
@@ -36,19 +36,13 @@ public abstract class HttpService {
     private String username;
     private String password;
 
-    public HttpService(String baseServerUrl) {
+    public HttpRemoteServiceImpl(String baseServerUrl) {
         this.baseServerUrl = baseServerUrl;
         registryBuilder = RegistryBuilder.create();
 
         if (baseServerUrl.startsWith("http://")) {
             registryBuilder.register("http", PlainConnectionSocketFactory.getSocketFactory());
         }
-    }
-
-    // --- implementation focused methods
-
-    public RegistryBuilder<ConnectionSocketFactory> getRegistryBuilder() {
-        return registryBuilder;
     }
 
     public String getUsername() {
@@ -66,8 +60,6 @@ public abstract class HttpService {
     public void setPassword(String password) {
         this.password = password;
     }
-
-    // TODO - refactor this
 
     private void authorizeConnection(AbstractHttpMessage request) {
         // TODO - could be solved using HttpClient objects
@@ -95,13 +87,13 @@ public abstract class HttpService {
         return response;
     }
 
-    HttpResponse delete(String reqPath) throws URISyntaxException, JsReportException {
+    public HttpResponse delete(String reqPath) throws URISyntaxException, JsReportException {
         HttpDelete httpDelete = new HttpDelete(new URI(baseServerUrl + reqPath));
         authorizeConnection(httpDelete);
         return connectAndGetResponse(httpDelete);
     }
 
-    HttpResponse post(String reqPath, String request) throws UnsupportedEncodingException, JsReportException, URISyntaxException {
+    public HttpResponse post(String reqPath, String request) throws UnsupportedEncodingException, JsReportException, URISyntaxException {
         HttpPost httpPost = new HttpPost(new URI(baseServerUrl + reqPath));
         httpPost.setEntity(new StringEntity(request));
         httpPost.setHeader(HEADER_CONTENT_TYPE, MIME_APPLICATION_JSON);
@@ -110,9 +102,8 @@ public abstract class HttpService {
         return connectAndGetResponse(httpPost);
     }
 
-    Header findHeader(final HttpResponse response, final String headerName) {
-        // TODO - may use exceptions
-        assert response != null;
+
+    public Header findHeader(final HttpResponse response, final String headerName) {
         Header[] headers = response.getHeaders(headerName);
 
         if (headers == null || headers.length < 1) {
@@ -122,7 +113,7 @@ public abstract class HttpService {
         return headers[0];
     }
 
-    String findAndParseHeader(final HttpResponse response, final String headerName) {
+    public String findAndParseHeader(final HttpResponse response, final String headerName) {
         Header header = findHeader(response, headerName);
         return header == null ? null : header.getValue();
     }

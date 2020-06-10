@@ -1,9 +1,11 @@
-package net.jsreport.java.entity;
+package net.jsreport.java.dto;
+
+import net.jsreport.java.entity.Template;
 
 /**
  *
  */
-public class RenderRequest {
+public class RenderTemplateRequest {
 
     private Template template;
 

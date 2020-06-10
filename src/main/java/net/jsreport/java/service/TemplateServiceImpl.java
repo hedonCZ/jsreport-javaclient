@@ -3,25 +3,27 @@ package net.jsreport.java.service;
 import com.google.gson.Gson;
 import net.jsreport.java.JsReportException;
 import net.jsreport.java.entity.Template;
-import net.jsreport.java.entity.TemplateRequest;
+import net.jsreport.java.dto.CreateTemplateRequest;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 
-public class TemplateServiceImpl extends HttpService implements TemplateService {
+public class TemplateServiceImpl implements TemplateService {
 
     private Gson gson = new Gson();
 
-    public TemplateServiceImpl(String baseServerUrl) {
-        super(baseServerUrl);
+    private HttpRemoteService httpRemoteService;
+
+    public TemplateServiceImpl(HttpRemoteService httpRemoteService) {
+        this.httpRemoteService = httpRemoteService;
     }
 
-    public Template putTemplate(TemplateRequest request) throws JsReportException {
+    public Template putTemplate(CreateTemplateRequest request) throws JsReportException {
         HttpResponse response = null;
         try {
-            response = post("/odata/templates", gson.toJson(request));
+            response = httpRemoteService.post("/odata/templates", gson.toJson(request));
         } catch (Exception e) {
             throw new JsReportException(e);
         }
@@ -41,7 +43,7 @@ public class TemplateServiceImpl extends HttpService implements TemplateService 
         HttpResponse response = null;
 
         try {
-            response = delete("/odata/templates(" + id + ")");
+            response = httpRemoteService.delete("/odata/templates(" + id + ")");
         } catch (URISyntaxException e) {
             throw new JsReportException(e);
         }

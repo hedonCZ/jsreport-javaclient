@@ -2,7 +2,7 @@ package net.jsreport.java.service;
 
 import com.google.gson.Gson;
 import net.jsreport.java.JsReportException;
-import net.jsreport.java.entity.RenderRequest;
+import net.jsreport.java.dto.RenderTemplateRequest;
 import net.jsreport.java.entity.Report;
 import net.jsreport.java.entity.Template;
 import org.apache.http.HttpResponse;
@@ -14,12 +14,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
 // TODO - may use factory pattern ???
-public class ReportingServiceImpl extends HttpService implements ReportingService {
+public class ReportingServiceImpl implements ReportingService {
 
     private Gson gson = new Gson();
 
-    public ReportingServiceImpl(String baseServerUrl) {
-        super(baseServerUrl);
+    private HttpRemoteService remoteService;
+
+    public ReportingServiceImpl(HttpRemoteService remoteService) {
+        this.remoteService = remoteService;
     }
 
     public Future<Report> renderAsync(final String templateShortid, final Object data) throws JsReportException {
@@ -43,7 +45,7 @@ public class ReportingServiceImpl extends HttpService implements ReportingServic
         Template template = new Template();
         template.setShortid(templateShortid);
 
-        RenderRequest renderRequest = new RenderRequest();
+        RenderTemplateRequest renderRequest = new RenderTemplateRequest();
         renderRequest.setTemplate(template);
         renderRequest.setData(data);
 
@@ -66,11 +68,11 @@ public class ReportingServiceImpl extends HttpService implements ReportingServic
         }
     }
 
-    public Future<Report> renderAsync(RenderRequest request) {
+    public Future<Report> renderAsync(RenderTemplateRequest request) {
         return null;
     }
 
-    public Report render(RenderRequest request) throws JsReportException {
+    public Report render(RenderTemplateRequest request) throws JsReportException {
         try {
             return renderString(gson.toJson(request));
         } catch (IOException e) {
@@ -92,7 +94,7 @@ public class ReportingServiceImpl extends HttpService implements ReportingServic
     // --- private
 
     private Report renderString(String request) throws IOException, JsReportException, URISyntaxException {
-        HttpResponse response = post("/api/report", request);
+        HttpResponse response = remoteService.post("/api/report", request);
 
         if (response.getStatusLine().getStatusCode() >= 300) {
             throw new JsReportException(String.format("Invalid status code (%d) !!!", response.getStatusLine().getStatusCode()));
@@ -106,8 +108,8 @@ public class ReportingServiceImpl extends HttpService implements ReportingServic
             throw new JsReportException(e);
         }
 
-        result.setContentType(findHeader(response, HEADER_CONTENT_TYPE));
-        result.setFileExtension(findAndParseHeader(response, HEADER_FILE_EXTENSION));
+        result.setContentType(remoteService.findHeader(response, HttpRemoteServiceImpl.HEADER_CONTENT_TYPE));
+        result.setFileExtension(remoteService.findAndParseHeader(response, HttpRemoteServiceImpl.HEADER_FILE_EXTENSION));
 
         // TODO - how it works ?
         result.setPermanentLink(null);

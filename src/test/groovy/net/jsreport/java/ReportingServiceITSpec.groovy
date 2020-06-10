@@ -1,13 +1,10 @@
 package net.jsreport.java
 
-import net.jsreport.java.entity.RenderRequest
+import net.jsreport.java.dto.CreateTemplateRequest
+import net.jsreport.java.dto.RenderTemplateRequest
 import net.jsreport.java.entity.Report
 import net.jsreport.java.entity.Template
-import net.jsreport.java.entity.TemplateRequest
-import net.jsreport.java.service.ReportingService
-import net.jsreport.java.service.ReportingServiceImpl
-import net.jsreport.java.service.TemplateService
-import net.jsreport.java.service.TemplateServiceImpl
+import net.jsreport.java.service.*
 import org.apache.log4j.Logger
 import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
@@ -26,34 +23,40 @@ class ReportingServiceITSpec extends Specification {
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
 
     @Shared
-    private ReportingService service
+    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+
     @Shared
-    private TemplateService crudService
+    private ReportingService reportingService = new ReportingServiceImpl(httpRemoteService)
+
     @Shared
-    private Template testingTemplate
+    private TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
+
+    @Shared
+    Template testingTemplate
+
+    @Shared
+    CreateTemplateRequest templateRequest =
+            new CreateTemplateRequest(
+                    name: "test-api",
+                    content: "<h1>${PDF_TEXT_CONTENT}</h1>",
+                    recipe: "chrome-pdf",
+                    engine: "handlebars"
+            )
+
 
     def setupSpec() {
-        crudService = new TemplateServiceImpl("http://jsreport:9080")
-        service = new ReportingServiceImpl("http://jsreport:9080")
-
-        TemplateRequest templateRequest = new TemplateRequest()
-        templateRequest.setName("test-api")
-        templateRequest.setContent("<h1>${PDF_TEXT_CONTENT}</h1>")
-        templateRequest.setRecipe("chrome-pdf")
-        templateRequest.setEngine("handlebars")
-
-        testingTemplate = crudService.putTemplate(templateRequest)
+        testingTemplate = templateService.putTemplate(templateRequest)
     }
 
     def cleanupSpec() {
-        crudService.removeTemplate(testingTemplate._id)
+        templateService.removeTemplate(testingTemplate._id)
     }
 
     @Unroll
-    def "render - using request"() {
+    def "test render template"() {
         when:
 
-        Report report = service.render(renderRequest)
+        Report report = reportingService.render(renderRequest)
 
         then:
 
@@ -65,8 +68,8 @@ class ReportingServiceITSpec extends Specification {
         where:
 
         renderRequest << [
-                new RenderRequest(template: new Template(name: "/test-api")),
-                new RenderRequest(template: new Template(shortid: testingTemplate.shortid))
+                new RenderTemplateRequest(template: new Template(name: "/test-api")),
+                new RenderTemplateRequest(template: new Template(shortid: testingTemplate.shortid))
         ]
     }
 

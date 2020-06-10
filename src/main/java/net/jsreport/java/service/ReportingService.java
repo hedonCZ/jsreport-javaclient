@@ -1,7 +1,7 @@
 package net.jsreport.java.service;
 
 import net.jsreport.java.JsReportException;
-import net.jsreport.java.entity.RenderRequest;
+import net.jsreport.java.dto.RenderTemplateRequest;
 import net.jsreport.java.entity.Report;
 
 import java.util.concurrent.Future;
@@ -34,13 +34,13 @@ public interface ReportingService {
     /**
      * Overload for more sophisticated rendering.
      *
-     * @param request Description of rendering process {@link RenderRequest}
+     * @param request Description of rendering process {@link RenderTemplateRequest}
      * @throws JsReportException When problems contact reporting service occurs.
      *
      * @return Report result promise
      * */
-    Report render(RenderRequest request) throws JsReportException;
-    Future<Report> renderAsync(RenderRequest request) throws JsReportException;
+    Report render(RenderTemplateRequest request) throws JsReportException;
+    Future<Report> renderAsync(RenderTemplateRequest request) throws JsReportException;
 
     /**
      * Request jsreport package version.

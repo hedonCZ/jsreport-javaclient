@@ -1,11 +1,14 @@
 package net.jsreport.java
 
 import net.jsreport.java.entity.Template
-import net.jsreport.java.entity.TemplateRequest
+import net.jsreport.java.dto.CreateTemplateRequest
+import net.jsreport.java.service.HttpRemoteService
+import net.jsreport.java.service.HttpRemoteServiceImpl
 import net.jsreport.java.service.TemplateService
 import net.jsreport.java.service.TemplateServiceImpl
 import org.apache.log4j.Logger
 import org.junit.experimental.categories.Category
+import spock.lang.Shared
 import spock.lang.Specification
 
 @Category(IntegrationTest.class)
@@ -15,37 +18,38 @@ class TemplateServiceITSpec extends Specification {
 
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
 
-    private TemplateService service
-    private Template template1
-    private Template template2
-    private Template template3
+    @Shared
+    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
 
-    void setup() {
-        service = new TemplateServiceImpl("http://jsreport:9080")
+    @Shared
+    private TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
-    }
+    @Shared
+    CreateTemplateRequest templateRequest =
+            new CreateTemplateRequest(
+                    name: "test-api",
+                    content: "<h1>${PDF_TEXT_CONTENT}</h1>",
+                    recipe: "chrome-pdf",
+                    engine: "handlebars"
+            )
 
-    def "test template crud"() {
+    def "test put & remove"() {
         when:
-        TemplateRequest templateRequest = new TemplateRequest()
-        templateRequest.setName("test-api")
-        templateRequest.setContent("<h1>${PDF_TEXT_CONTENT}</h1>")
-        templateRequest.setRecipe("chrome-pdf")
-        templateRequest.setEngine("handlebars")
 
-        template1 = service.putTemplate(templateRequest)
-        service.removeTemplate(template1.get_id())
-        template2 = service.putTemplate(templateRequest)
+        Template template1 = templateService.putTemplate(templateRequest)
+        templateService.removeTemplate(template1.get_id())
+        Template template2 = templateService.putTemplate(templateRequest)
 
         try {
-            template3 = service.putTemplate(templateRequest)
+            Template temp = templateService.putTemplate(templateRequest)
             assert false
         } catch(JsReportException e) {
             println "Get exception: ${e}"
         }
 
-        service.removeTemplate(template2.get_id())
-        service.removeTemplate(template2.get_id())
+        // removing not existing do not matter
+        templateService.removeTemplate(template2.get_id())
+        templateService.removeTemplate(template2.get_id())
 
         then:
 
@@ -54,13 +58,13 @@ class TemplateServiceITSpec extends Specification {
         assert template2 != null
         assert template2.content.contains(PDF_TEXT_CONTENT)
         assert template2.shortid != template1.shortid
-        assert template3 == null
 
+        cleanup:
+
+        templateService.removeTemplate(template1.get_id())
+        templateService.removeTemplate(template2.get_id())
     }
 
-    def after() {
-        service.removeTemplate(template1.get_id())
-        service.removeTemplate(template2.get_id())
-        service.removeTemplate(template3.get_id())
+    def cleanup() {
     }
 }
