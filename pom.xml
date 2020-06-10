@@ -34,6 +34,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpasyncclient</artifactId>
             <version>4.0.2</version>
@@ -128,18 +133,27 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>jsreport-javaclient</name>
-                            <alias>jsreport-javaclient-main</alias>
+                            <name>jsreport/jsreport</name>
+        <!--
                             <build>
-                                <dockerFileDir>${project.basedir}/src/test/server</dockerFileDir>
+                                <dockerFileDir>${project.basedir}/src/test/server/jsreport</dockerFileDir>
                             </build>
+        -->
                             <run>
                                 <ports>
                                     <port>9080:5488</port>
                                 </ports>
+                                <volumes>
+                                    <bind>${project.basedir}/src/test/server/jsreport:/jsreport</bind>
+                                </volumes>
+<!--
+                                <entrypoint>/bin/bash</entrypoint>
+                                <autoRemove>true</autoRemove>
+-->
                             </run>
                         </image>
                     </images>
+
                 </configuration>
                 <executions>
                     <execution>
