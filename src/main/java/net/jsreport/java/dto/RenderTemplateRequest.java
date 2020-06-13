@@ -2,9 +2,6 @@ package net.jsreport.java.dto;
 
 import net.jsreport.java.entity.Template;
 
-/**
- *
- */
 public class RenderTemplateRequest {
 
     private Template template;

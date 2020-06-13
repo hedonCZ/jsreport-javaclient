@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 public interface ReportingService {
 
     /**
-     * The simpliest rendering using template shortid and input data
+     * The simply rendering using template's shortid and input data
      *
      * @param templateShortid can be taken from jsreport studio or from filename in jsreport embedded
      * @param data any json serializable object

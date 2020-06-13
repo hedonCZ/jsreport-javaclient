@@ -1,13 +1,10 @@
 package net.jsreport.java.service
 
-
+import com.google.gson.Gson
 import net.jsreport.java.dto.CreateTemplateRequest
 import net.jsreport.java.dto.RenderTemplateRequest
 import net.jsreport.java.entity.Report
 import net.jsreport.java.entity.Template
-import org.apache.log4j.Logger
-import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
-import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import spock.lang.Shared
@@ -16,9 +13,10 @@ import spock.lang.Unroll
 
 class ReportingServiceITSpec extends Specification {
 
-    private static final Logger log = Logger.getLogger(ReportingServiceITSpec.class)
-
+    private static final Gson GSON = new Gson()
+    private static final PDFTextStripper PDF_TEXT_STRIPPER = new PDFTextStripper()
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
+    private static final String PDF_TEXT_DATA_CONTENT = "Hello jsreport!"
 
     @Shared
     private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
@@ -30,9 +28,6 @@ class ReportingServiceITSpec extends Specification {
     private TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
     @Shared
-    Template testingTemplate
-
-    @Shared
     CreateTemplateRequest templateRequest =
             new CreateTemplateRequest(
                     name: "test-api",
@@ -41,34 +36,71 @@ class ReportingServiceITSpec extends Specification {
                     engine: "handlebars"
             )
 
+    @Shared
+    CreateTemplateRequest templateDataRequest =
+            new CreateTemplateRequest(
+                    name: "test-data",
+                    content: "<h1>Hello {{user}}!</h1>",
+                    recipe: "chrome-pdf",
+                    engine: "handlebars"
+            )
+
+    @Shared
+    Template testingTemplate
+
+    @Shared
+    Template testingDataTemplate
 
     def setupSpec() {
         testingTemplate = templateService.putTemplate(templateRequest)
+        testingDataTemplate = templateService.putTemplate(templateDataRequest)
     }
 
     def cleanupSpec() {
         templateService.removeTemplate(testingTemplate._id)
+        templateService.removeTemplate(testingDataTemplate._id)
     }
 
     @Unroll
-    def "test render template"() {
+    def testRenderByRequest() {
         when:
+
+        RenderTemplateRequest renderRequest = new RenderTemplateRequest()
+        renderRequest.template = template
+        renderRequest.data = data
 
         Report report = reportingService.render(renderRequest)
 
         then:
 
-        assertReport(
-                report,
-                PDF_TEXT_CONTENT
-        )
+        assertReport(report, text)
 
         where:
 
-        renderRequest << [
-                new RenderTemplateRequest(template: new Template(name: "/test-api")),
-                new RenderTemplateRequest(template: new Template(shortid: testingTemplate.shortid))
-        ]
+        template                                            | text                  | data
+        new Template(name: "test-api")                      | PDF_TEXT_CONTENT      | null
+        new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
+        new Template(name: "test-data")                     | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
+        new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
+    }
+
+    @Unroll
+    def testOtherRenderMethods() {
+        when:
+
+        Report reportByStringObject = reportingService.render(template.shortid, data)
+        Report reportByStringString = reportingService.render(template.shortid, GSON.toJson(data))
+
+        then:
+
+        assertReport(reportByStringObject, text)
+        assertReport(reportByStringString, text)
+
+        where:
+
+        template                                            | text                  | data
+        new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
+        new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
     }
 
     void assertReport(Report report, String pdfContent) {
@@ -77,20 +109,7 @@ class ReportingServiceITSpec extends Specification {
         assert report.getContentType().getValue() == "application/pdf"
 
         if (pdfContent != null) {
-            assert getTextFromPdf(report.getContent()).trim() == pdfContent.trim()
+            assert PDF_TEXT_STRIPPER.getText(PDDocument.load(report.getContent())).trim() == pdfContent.trim()
         }
-    }
-
-    def getTextFromPdf(InputStream pdfSrc) {
-        def parser = new PDFParser(new RandomAccessBufferedFileInputStream(pdfSrc))
-        parser.parse();
-        def cosDoc = parser.getDocument();
-        def pdfStripper = new PDFTextStripper();
-        def pdDoc = new PDDocument(cosDoc);
-        def parsedText = pdfStripper.getText(pdDoc);
-
-        log.debug("Find this text in PDF: ${parsedText}")
-
-        return parsedText
     }
 }

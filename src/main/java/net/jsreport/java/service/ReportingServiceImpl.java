@@ -9,16 +9,12 @@ import org.apache.http.HttpResponse;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
-// TODO - may use factory pattern ???
 public class ReportingServiceImpl implements ReportingService {
 
-    private Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
-    private HttpRemoteService remoteService;
+    private final HttpRemoteService remoteService;
 
     public ReportingServiceImpl(HttpRemoteService remoteService) {
         this.remoteService = remoteService;
@@ -40,19 +36,15 @@ public class ReportingServiceImpl implements ReportingService {
 
         try {
             return renderString(requestString);
-        } catch (IOException e) {
-            throw new JsReportException(e);
-        } catch (URISyntaxException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new JsReportException(e);
         }
     }
 
     public Report render(RenderTemplateRequest request) throws JsReportException {
         try {
-            return renderString(gson.toJson(request));
-        } catch (IOException e) {
-            throw new JsReportException(e);
-        } catch (URISyntaxException e) {
+            return renderString(GSON.toJson(request));
+        } catch (IOException | URISyntaxException e) {
             throw new JsReportException(e);
         }
     }
