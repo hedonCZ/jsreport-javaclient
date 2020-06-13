@@ -1,10 +1,10 @@
-package net.jsreport.java
+package net.jsreport.java.service
 
+import net.jsreport.java.IntegrationTest
 import net.jsreport.java.dto.CreateTemplateRequest
 import net.jsreport.java.dto.RenderTemplateRequest
 import net.jsreport.java.entity.Report
 import net.jsreport.java.entity.Template
-import net.jsreport.java.service.*
 import org.apache.log4j.Logger
 import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser

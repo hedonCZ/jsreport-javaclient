@@ -1,11 +1,9 @@
-package net.jsreport.java
+package net.jsreport.java.service
 
+import net.jsreport.java.IntegrationTest
+import net.jsreport.java.JsReportException
 import net.jsreport.java.entity.Template
 import net.jsreport.java.dto.CreateTemplateRequest
-import net.jsreport.java.service.HttpRemoteService
-import net.jsreport.java.service.HttpRemoteServiceImpl
-import net.jsreport.java.service.TemplateService
-import net.jsreport.java.service.TemplateServiceImpl
 import org.apache.log4j.Logger
 import org.junit.experimental.categories.Category
 import spock.lang.Shared
