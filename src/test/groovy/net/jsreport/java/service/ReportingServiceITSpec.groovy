@@ -1,6 +1,6 @@
 package net.jsreport.java.service
 
-import net.jsreport.java.IntegrationTest
+
 import net.jsreport.java.dto.CreateTemplateRequest
 import net.jsreport.java.dto.RenderTemplateRequest
 import net.jsreport.java.entity.Report
@@ -10,12 +10,10 @@ import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream
 import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
-import org.junit.experimental.categories.Category
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Category(IntegrationTest.class)
 class ReportingServiceITSpec extends Specification {
 
     private static final Logger log = Logger.getLogger(ReportingServiceITSpec.class)

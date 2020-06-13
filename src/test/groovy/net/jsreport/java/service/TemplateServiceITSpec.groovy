@@ -1,15 +1,13 @@
 package net.jsreport.java.service
 
-import net.jsreport.java.IntegrationTest
+
 import net.jsreport.java.JsReportException
 import net.jsreport.java.entity.Template
 import net.jsreport.java.dto.CreateTemplateRequest
 import org.apache.log4j.Logger
-import org.junit.experimental.categories.Category
 import spock.lang.Shared
 import spock.lang.Specification
 
-@Category(IntegrationTest.class)
 class TemplateServiceITSpec extends Specification {
 
     private static final Logger log = Logger.getLogger(TemplateServiceITSpec.class)
