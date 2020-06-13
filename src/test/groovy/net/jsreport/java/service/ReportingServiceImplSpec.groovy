@@ -21,12 +21,58 @@ class ReportingServiceImplSpec extends Specification {
     private static final PDFTextStripper PDF_TEXT_STRIPPER = new PDFTextStripper()
     private static final BasicHeader CONTENT_TYPE_HEADER = new BasicHeader(HttpRemoteServiceImpl.HEADER_CONTENT_TYPE, "")
 
+    HttpRemoteService HTTP_REMOTE_SERVICE_MOCK = Mock(HttpRemoteService) {
+        post("/api/report", _) >> { def args ->
+                HttpResponse httpResponseMock = Mock(HttpResponse)
+
+                RenderTemplateRequest req = GSON.fromJson(
+                        new StringReader(args[1] as String),
+                        RenderTemplateRequest.class
+                )
+
+                if (req.template.name.startsWith("code_")) {
+                    httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), Integer.parseInt(req.template.name.substring(5)), "Test") }
+
+                } else if (req.template.name.startsWith("ex_")) {
+                    String exType = req.template.name.substring(3)
+                    switch (exType) {
+                        case "UnsupportedEncodingException": throw new UnsupportedEncodingException()
+                        case "URISyntaxException": throw new URISyntaxException("test", "test")
+                        case "JsReportException": throw new JsReportException()
+                        default: throw new JsReportException()
+                    }
+                }
+
+                HttpEntity httpEntityMock = Mock(HttpEntity)
+                httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Test") }
+                httpEntityMock.getContent() >> { return ReportingServiceImplSpec.getResourceAsStream("${req.template.name}.pdf") }
+                httpResponseMock.getEntity() >> { return httpEntityMock }
+
+                return httpResponseMock
+        }
+
+        findHeader(_, HttpRemoteServiceImpl.HEADER_CONTENT_TYPE) >> { return CONTENT_TYPE_HEADER }
+
+        findAndParseHeader(_, HttpRemoteServiceImpl.HEADER_FILE_EXTENSION) >> { return "" }
+    }
+
+    private void assertReport(Report report, String requiredText) {
+        assert report != null
+        assert report.content != null
+        assert report.fileExtension == ""
+        assert report.contentType == CONTENT_TYPE_HEADER
+        assert report.getPermanentLink() == null
+
+        def load = PDDocument.load(report.content)
+        assert requiredText == PDF_TEXT_STRIPPER.getText(load)
+        load.close()
+    }
+
     @Unroll
     def testRender() {
         setup:
 
-        HttpRemoteService httpRemoteServiceMock = Mock(HttpRemoteService)
-        ReportingService reportingService = new ReportingServiceImpl(httpRemoteServiceMock)
+        ReportingService reportingService = new ReportingServiceImpl(HTTP_REMOTE_SERVICE_MOCK)
 
         when:
 
@@ -44,56 +90,16 @@ class ReportingServiceImplSpec extends Specification {
 
         then:
 
-        httpRemoteServiceMock.post("/api/report", _) >> { def args ->
-            HttpResponse httpResponseMock = Mock(HttpResponse)
-
-            RenderTemplateRequest req = GSON.fromJson(
-                    new StringReader(args[1] as String),
-                    RenderTemplateRequest.class
-            )
-
-            if (req.template.name.startsWith("code_")) {
-                httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), Integer.parseInt(req.template.name.substring(5)), "Test") }
-
-            } else if (req.template.name.startsWith("ex_")) {
-                String exType = req.template.name.substring(3)
-                switch (exType) {
-                    case "UnsupportedEncodingException" : throw new UnsupportedEncodingException()
-                    case "URISyntaxException"           : throw new URISyntaxException("test", "test")
-                    case "JsReportException"            : throw new JsReportException()
-                    default                             : throw new JsReportException()
-                }
-
-            } else if (req.template.name == "${name}") {
-                HttpEntity httpEntityMock = Mock(HttpEntity)
-                httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Test") }
-                httpEntityMock.getContent() >> { return ReportingServiceImplSpec.getResourceAsStream("${name}.pdf") }
-                httpResponseMock.getEntity() >> { return httpEntityMock }
-            }
-
-            return httpResponseMock
-        }
-
-        httpRemoteServiceMock.findHeader(_, HttpRemoteServiceImpl.HEADER_CONTENT_TYPE) >> { return CONTENT_TYPE_HEADER }
-        httpRemoteServiceMock.findAndParseHeader(_, HttpRemoteServiceImpl.HEADER_FILE_EXTENSION) >> { return "" }
-
-        assert report != null
-        assert report.content != null
-        assert report.fileExtension == ""
-        assert report.contentType == CONTENT_TYPE_HEADER
-        assert report.getPermanentLink() == null
-
-        def load = PDDocument.load(report.content)
-        assert text == PDF_TEXT_STRIPPER.getText(load)
-        load.close()
+        assertReport(report, text)
 
         where:
 
-        name                                    | text
-        "ok"                                    | "Simple test of template call!\n"
-        "ex_UnsupportedEncodingException"       | null
-        "ex_URISyntaxException"                 | null
-        "ex_JsReportException"                  | null
-        "code_500"                              | null
+        name                                    | text                                  | data
+        "ok"                                    | "Simple test of template call!\n"     | null
+        "data"                                  | "Hello jsreport!\n"                   | [ "user" : "jsreport" ]
+        "ex_UnsupportedEncodingException"       | null                                  | null
+        "ex_URISyntaxException"                 | null                                  | null
+        "ex_JsReportException"                  | null                                  | null
+        "code_500"                              | null                                  | null
     }
 }
