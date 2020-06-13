@@ -72,8 +72,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- TODO -> migrate all test to use spock -->
-
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
@@ -127,48 +125,20 @@
             </plugin>
 
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.28.0</version>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>jsreport/jsreport</name>
-        <!--
-                            <build>
-                                <dockerFileDir>${project.basedir}/src/test/server/jsreport</dockerFileDir>
-                            </build>
-        -->
-                            <run>
-                                <ports>
-                                    <port>9080:5488</port>
-                                </ports>
-                                <volumes>
-                                    <bind>${project.basedir}/src/test/server/jsreport:/jsreport</bind>
-                                </volumes>
-<!--
-                                <entrypoint>/bin/bash</entrypoint>
-                                <autoRemove>true</autoRemove>
--->
-                            </run>
-                        </image>
-                    </images>
-
-                </configuration>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.5</version>
                 <executions>
                     <execution>
-                        <id>build-and-start-report-server</id>
-                        <phase>pre-integration-test</phase>
+                        <id>prepare</id>
                         <goals>
-                            <goal>build</goal>
-                            <goal>start</goal>
+                            <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>stop-report-server</id>
-                        <phase>post-integration-test</phase>
+                        <id>report</id>
                         <goals>
-                            <goal>stop</goal>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -176,29 +146,31 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <includes>
+                        <include>**/*Spec.java</include>
+                    </includes>
+                    <excludes>
+                        <exclude>**/*ITSpec.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>2.22.1</version>
-                <executions>
-                    <execution>
-                        <id>integration-tests</id>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                        <configuration>
-                            <groups>net.jsreport.java.IntegrationTest</groups>
-                            <includes>
-                                <include>**/*ITSpec.class</include>
-                            </includes>
-
-                            <!-- TODO - parametrize outside -->
-<!--
-                            <skipTests>true</skipTests>
--->
-                        </configuration>
-                    </execution>
-                </executions>
+                <configuration>
+                    <groups>net.jsreport.java.IntegrationTest</groups>
+                    <includes>
+                        <include>**/*ITSpec.java</include>
+                        <include>**/*ITSpec.groovy</include>
+                    </includes>
+                </configuration>
             </plugin>
+
         </plugins>
     </build>
 
