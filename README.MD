@@ -6,5 +6,6 @@ Features:
 * call reports
 * create and remove templates
 
+For usage see tests.
 
  
