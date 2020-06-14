@@ -1,6 +1,7 @@
 package net.jsreport.java.service
 
 import com.google.gson.Gson
+import net.jsreport.java.JsReportException
 import net.jsreport.java.dto.CreateTemplateRequest
 import net.jsreport.java.dto.RenderTemplateRequest
 import net.jsreport.java.entity.Report
@@ -52,17 +53,35 @@ class ReportingServiceITSpec extends Specification {
     Template testingDataTemplate
 
     def setupSpec() {
-        testingTemplate = templateService.putTemplate(templateRequest)
-        testingDataTemplate = templateService.putTemplate(templateDataRequest)
+        try {
+            testingTemplate = templateService.putTemplate(templateRequest)
+        } catch(Throwable e) {
+            println "Sink exception: ${e.getMessage()} on creating: ${templateRequest}"
+        }
+
+        try {
+            testingDataTemplate = templateService.putTemplate(templateDataRequest)
+        } catch(Throwable e) {
+            println "Sink exception: ${e.getMessage()} on creating: ${templateDataRequest}"
+        }
     }
 
     def cleanupSpec() {
-        templateService.removeTemplate(testingTemplate._id)
-        templateService.removeTemplate(testingDataTemplate._id)
+        try {
+            templateService.removeTemplate(testingTemplate._id)
+        } catch(Throwable e) {
+            println "Sink exception: ${e.getMessage()} on removing: ${testingTemplate}"
+        }
+
+        try {
+            templateService.removeTemplate(testingDataTemplate._id)
+        } catch(Throwable e) {
+            println "Sink exception: ${e.getMessage()} on removing: ${templateDataRequest}"
+        }
     }
 
     @Unroll
-    def testRenderByRequest() {
+    def testRenderByRequest_OK() {
         when:
 
         RenderTemplateRequest renderRequest = new RenderTemplateRequest()
@@ -82,10 +101,46 @@ class ReportingServiceITSpec extends Specification {
         new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
         new Template(name: "test-data")                     | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
         new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
+
     }
 
     @Unroll
-    def testOtherRenderMethods() {
+    def testRenderByRequest_Errors() {
+        setup:
+
+        RenderTemplateRequest renderRequest = new RenderTemplateRequest()
+        renderRequest.template = template
+        renderRequest.data = data
+
+        when:
+
+        Throwable caught = null
+        try {
+            reportingService.render(renderRequest)
+        } catch (Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught != null
+        assert caught.class == exceptionClass
+        assert caught.getMessage() == text
+
+        where:
+
+        template                                | exceptionClass            | text                              | data
+        new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | null
+        new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
+
+    }
+
+    @Unroll
+    def testOtherRenderMethods_OK() {
         when:
 
         Report reportByStringObject = reportingService.render(template.shortid, data)
@@ -101,6 +156,67 @@ class ReportingServiceITSpec extends Specification {
         template                                            | text                  | data
         new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
         new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
+    }
+
+    @Unroll
+    def testRenderByOtherMethods_Error() {
+        when:
+
+        Throwable caught = null
+        try {
+            reportingService.render(shortId, data)
+        } catch (Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught != null
+        assert caught.class == exceptionClass
+        assert caught.getMessage() == text
+
+        where:
+
+        shortId     | exceptionClass            | text                              | data
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | null
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
+        null        | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
+        "not-exist" | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some", "data" ]
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some", "data" ]
+    }
+
+    @Unroll
+    def testRenderByStringObject_Error() {
+        when:
+
+        Throwable caught = null
+        try {
+            reportingService.render(shortId, data)
+        } catch (Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught != null
+        assert caught.class == exceptionClass
+        assert caught.getMessage() == text
+
+        where:
+
+        shortId     | exceptionClass            | text                              | data
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | null
+        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
+        null        | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
+        "not-exist" | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
+        null        | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
+
     }
 
     void assertReport(Report report, String pdfContent) {

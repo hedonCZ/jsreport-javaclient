@@ -30,10 +30,10 @@ class ReportingServiceImplSpec extends Specification {
         when:
 
         RenderTemplateRequest renderTemplateRequest = new RenderTemplateRequest(template: new Template(name: "${name}"))
-        Report report
+        Report report = null
         try {
             report = reportingService.render(renderTemplateRequest)
-        } catch(JsReportException e) {
+        } catch(Throwable e) {
             if (name.startsWith("code_")) return
             if (name.contains(e.class.simpleName)) return
             if (e.cause != null && name.contains(e.cause.class.simpleName)) return
@@ -52,6 +52,8 @@ class ReportingServiceImplSpec extends Specification {
         "data"                                  | "Hello jsreport!\n"                   | [ "user" : "jsreport" ]
         "ex_UnsupportedEncodingException"       | null                                  | null
         "ex_JsReportException"                  | null                                  | null
+        "ic_IOException"                        | null                                  | null
+        "ic_UnsupportedOperationException"      | null                                  | null
         "code_500"                              | null                                  | null
         "code_404"                              | null                                  | null
         "code_400"                              | null                                  | null
@@ -65,10 +67,10 @@ class ReportingServiceImplSpec extends Specification {
 
         then:
 
-        Report report
+        Report report = null
         try {
             report = reportingService.render(name, GSON.toJson(data))
-        } catch(JsReportException e) {
+        } catch(Throwable e) {
             if (name.startsWith("code_")) return
             if (name.contains(e.class.simpleName)) return
             if (e.cause != null && name.contains(e.cause.class.simpleName)) return
@@ -86,6 +88,8 @@ class ReportingServiceImplSpec extends Specification {
         "ex_UnsupportedEncodingException"       | null                                  | null
         "ex_URISyntaxException"                 | null                                  | null
         "ex_JsReportException"                  | null                                  | null
+        "ic_IOException"                        | null                                  | null
+        "ic_UnsupportedOperationException"      | null                                  | null
         "code_500"                              | null                                  | null
         "code_404"                              | null                                  | null
         "code_400"                              | null                                  | null
@@ -99,10 +103,10 @@ class ReportingServiceImplSpec extends Specification {
 
         then:
 
-        Report report
+        Report report = null
         try {
             report = reportingService.render(name, data)
-        } catch(JsReportException e) {
+        } catch(Throwable e) {
             if (name.startsWith("code_")) return
             if (name.contains(e.class.simpleName)) return
             if (e.cause != null && name.contains(e.cause.class.simpleName)) return
@@ -120,6 +124,8 @@ class ReportingServiceImplSpec extends Specification {
         "ex_UnsupportedEncodingException"       | null                                  | null
         "ex_URISyntaxException"                 | null                                  | null
         "ex_JsReportException"                  | null                                  | null
+        "ic_IOException"                        | null                                  | null
+        "ic_UnsupportedOperationException"      | null                                  | null
         "code_500"                              | null                                  | null
         "code_404"                              | null                                  | null
         "code_400"                              | null                                  | null
@@ -130,8 +136,9 @@ class ReportingServiceImplSpec extends Specification {
     //
 
     HttpRemoteService HTTP_REMOTE_SERVICE_MOCK = Mock(HttpRemoteService) {
-        post("/api/report", _) >> { def args ->
+        post("/api/report", _ as String) >> { List args ->
             HttpResponse httpResponseMock = Mock(HttpResponse)
+            HttpEntity httpEntityMock = Mock(HttpEntity)
 
             RenderTemplateRequest req = GSON.fromJson(
                     new StringReader(args[1] as String),
@@ -156,19 +163,36 @@ class ReportingServiceImplSpec extends Specification {
                     case "IOException": throw new IOException()
                     default: throw new JsReportException()
                 }
+
+            } else if (templateId.startsWith("ic_")) {
+                String exType = templateId.substring(3)
+                Throwable e
+                switch (exType) {
+                    case "UnsupportedOperationException":
+                        e = new UnsupportedOperationException()
+                        break
+                    case "IOException":
+                        e = new IOException()
+                        break
+                    default: throw new JsReportException()
+                }
+
+                httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Test") }
+                httpEntityMock.getContent() >> { throw e }
+
+            } else {
+                httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Test") }
+                httpEntityMock.getContent() >> { return ReportingServiceImplSpec.getResourceAsStream("${templateId}.pdf") }
+
             }
 
-            HttpEntity httpEntityMock = Mock(HttpEntity)
-            httpResponseMock.getStatusLine() >> { return new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 200, "Test") }
-            httpEntityMock.getContent() >> { return ReportingServiceImplSpec.getResourceAsStream("${templateId}.pdf") }
             httpResponseMock.getEntity() >> { return httpEntityMock }
 
             return httpResponseMock
         }
 
-        findHeader(_, HttpRemoteServiceImpl.HEADER_CONTENT_TYPE) >> { return CONTENT_TYPE_HEADER }
-
-        findAndParseHeader(_, HttpRemoteServiceImpl.HEADER_FILE_EXTENSION) >> { return "" }
+        findHeader(_ as HttpResponse, HttpRemoteServiceImpl.HEADER_CONTENT_TYPE) >> { return CONTENT_TYPE_HEADER }
+        findAndParseHeader(_ as HttpResponse , HttpRemoteServiceImpl.HEADER_FILE_EXTENSION) >> { return "" }
     }
 
     //
