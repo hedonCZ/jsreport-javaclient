@@ -1,7 +1,10 @@
 # Java SDK for jsreport
  
-See test for usage. 
+Java library for calling jsreport services. 
+
+Features:
+* call reports
+* create and remove templates
 
 
-`TODO - test server setup`
  
