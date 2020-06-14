@@ -1,24 +1,15 @@
 package net.jsreport.java.service
 
-
 import net.jsreport.java.JsReportException
-import net.jsreport.java.entity.Template
 import net.jsreport.java.dto.CreateTemplateRequest
-import org.apache.log4j.Logger
+import net.jsreport.java.entity.Template
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class TemplateServiceITSpec extends Specification {
 
-    private static final Logger log = Logger.getLogger(TemplateServiceITSpec.class)
-
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
-
-    @Shared
-    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
-
-    @Shared
-    private TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
     @Shared
     CreateTemplateRequest templateRequest =
@@ -29,7 +20,12 @@ class TemplateServiceITSpec extends Specification {
                     engine: "handlebars"
             )
 
-    def "test put & remove"() {
+    def testPutAndRemove_OK () {
+        setup:
+
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
+
         when:
 
         Template template1 = templateService.putTemplate(templateRequest)
@@ -40,27 +36,101 @@ class TemplateServiceITSpec extends Specification {
             Template temp = templateService.putTemplate(templateRequest)
             assert false
         } catch(JsReportException e) {
-            println "Get exception: ${e}"
+            println "Duplication insert fails correctly. Get exception: ${e}"
         }
-
-        // removing not existing do not matter
-        templateService.removeTemplate(template2.get_id())
-        templateService.removeTemplate(template2.get_id())
 
         then:
 
-        assert template1 != null
-        assert template1.getContent().contains(PDF_TEXT_CONTENT)
-        assert template2 != null
-        assert template2.content.contains(PDF_TEXT_CONTENT)
+        assertTemplate(template1, PDF_TEXT_CONTENT)
+        assertTemplate(template2, PDF_TEXT_CONTENT)
         assert template2.shortid != template1.shortid
 
         cleanup:
-
+        // removing not existing do not matter
         templateService.removeTemplate(template1.get_id())
         templateService.removeTemplate(template2.get_id())
+
     }
 
-    def cleanup() {
+    @Unroll
+    def testPut_Error() {
+        setup:
+
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
+
+        when:
+
+        Throwable caught = null
+        CreateTemplateRequest createTemplateRequest = new CreateTemplateRequest()
+
+        try {
+            templateService.putTemplate(createTemplateRequest)
+        } catch (Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught != null
+        assert caught.class == JsReportException.class
+        assert caught.getMessage() == text
+
+        where:
+
+        request                                                                                                             | text
+        new CreateTemplateRequest()                                                                                         | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test")                                                                     | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(content: "invalid-test")                                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(recipe: "invalid-test")                                                                   | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(engine: "invalid-test")                                                                   | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", recipe: "invalid")                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", recipe: "invalid")                         | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", engine: "invalid")                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test",  engine: "invalid")                        | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test",  engine: "invalid", recipe: "invalid")     | "Invalid status code (500) !!!"
+
     }
+
+
+    @Unroll
+    def testRemove_Error() {
+        setup:
+
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
+
+        when:
+
+        Throwable caught = null
+        try {
+            templateService.removeTemplate(shortId)
+        } catch(Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught == null
+
+        where:
+
+        shortId << [
+                null,
+                "invalid"
+        ]
+    }
+
+
+    //
+    // Asserts
+    //
+
+    private static void assertTemplate(Template template, String text) {
+        assert template != null
+        assert template._id != null
+        assert template.shortid != null
+        assert template.getContent().contains(text)
+    }
+
 }
