@@ -8,6 +8,7 @@ import net.jsreport.java.entity.Template;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 
 public class ReportingServiceImpl implements ReportingService {
@@ -33,26 +34,22 @@ public class ReportingServiceImpl implements ReportingService {
 
     public Report render(String templateShortid, String jsonData) throws JsReportException {
         String requestString = String.format("{ \"template\" : { \"shortid\" : \"%s\"}, \"data\" : %s }", templateShortid, jsonData);
-
-        try {
-            return renderString(requestString);
-        } catch (IOException | URISyntaxException e) {
-            throw new JsReportException(e);
-        }
+        return renderString(requestString);
     }
 
     public Report render(RenderTemplateRequest request) throws JsReportException {
-        try {
-            return renderString(GSON.toJson(request));
-        } catch (IOException | URISyntaxException e) {
-            throw new JsReportException(e);
-        }
+        return renderString(GSON.toJson(request));
     }
 
     // --- private
 
-    private Report renderString(String request) throws IOException, JsReportException, URISyntaxException {
-        HttpResponse response = remoteService.post("/api/report", request);
+    private Report renderString(String request) throws JsReportException {
+        HttpResponse response;
+        try {
+            response = remoteService.post("/api/report", request);
+        } catch (UnsupportedEncodingException | URISyntaxException e) {
+            throw new JsReportException(e);
+        }
 
         if (response.getStatusLine().getStatusCode() >= 400) {
             throw new JsReportException(String.format("Invalid status code (%d) !!!", response.getStatusLine().getStatusCode()));
