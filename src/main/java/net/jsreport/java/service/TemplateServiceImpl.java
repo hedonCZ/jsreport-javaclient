@@ -28,7 +28,7 @@ public class TemplateServiceImpl implements TemplateService {
             throw new JsReportException(e);
         }
 
-        if (response.getStatusLine().getStatusCode() >= 300) {
+        if (response.getStatusLine().getStatusCode() >= 400) {
             throw new JsReportException(String.format("Invalid status code (%d) !!!", response.getStatusLine().getStatusCode()));
         }
 
