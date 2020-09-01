@@ -118,17 +118,17 @@ class ReportingServiceImplSpec extends Specification {
 
         where:
 
-        name                                    | text                                  | data
-        "ok"                                    | "Simple test of template call!\n"     | null
-        "data"                                  | "Hello jsreport!\n"                   | [ "user" : "jsreport" ]
-        "ex_UnsupportedEncodingException"       | null                                  | null
-        "ex_URISyntaxException"                 | null                                  | null
-        "ex_JsReportException"                  | null                                  | null
-        "ic_IOException"                        | null                                  | null
-        "ic_UnsupportedOperationException"      | null                                  | null
-        "code_500"                              | null                                  | null
-        "code_404"                              | null                                  | null
-        "code_400"                              | null                                  | null
+        name                                    | text                                                      | data
+        "ok"                                    | "Simple test of template call!${System.lineSeparator()}"  | null
+        "data"                                  | "Hello jsreport!${System.lineSeparator()}"                | [ "user" : "jsreport" ]
+        "ex_UnsupportedEncodingException"       | null                                                      | null
+        "ex_URISyntaxException"                 | null                                                      | null
+        "ex_JsReportException"                  | null                                                      | null
+        "ic_IOException"                        | null                                                      | null
+        "ic_UnsupportedOperationException"      | null                                                      | null
+        "code_500"                              | null                                                      | null
+        "code_404"                              | null                                                      | null
+        "code_400"                              | null                                                      | null
     }
 
     //
