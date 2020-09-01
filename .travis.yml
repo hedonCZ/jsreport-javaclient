@@ -9,4 +9,4 @@ services:
 
 before_install:
   - docker pull jsreport/jsreport:2.9.0
-  - docker run -v "${TRAVIS_BUILD_DIR}/src/test/server/jsreport:/app" -p 9080:5488 --hostname javaclient.jsreport jsreport/jsreport:2.9.0
+  - docker run -v "${TRAVIS_BUILD_DIR}/src/test/server/jsreport/data:/app/data" -p 9080:5488 --hostname javaclient.jsreport jsreport/jsreport:2.9.0
