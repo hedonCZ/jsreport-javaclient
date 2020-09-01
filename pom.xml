@@ -104,22 +104,6 @@
                 </executions>
             </plugin>
 
-<!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
--->
-
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
@@ -181,7 +165,7 @@
                         <version>${maven.failsafe.plugin.version}</version>
                         <configuration>
                             <includes>
-                                <include>**/*ITSpec.java</include>
+                                <include>**/**ITSpec.java</include>
                             </includes>
                         </configuration>
                         <executions>
