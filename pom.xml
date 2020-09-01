@@ -160,10 +160,10 @@
                 <version>${maven.surefire.plugin.version}</version>
                 <configuration>
                     <includes>
-                        <include>**/*Spec.java</include>
+                        <include>**/**Spec.java</include>
                     </includes>
                     <excludes>
-                        <exclude>**/*ITSpec.java</exclude>
+                        <exclude>**/**ITSpec.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
