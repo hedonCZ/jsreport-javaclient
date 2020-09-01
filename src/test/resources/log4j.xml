@@ -2,7 +2,7 @@
 <!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "log4j.dtd">
 <log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>
     <appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
-        <param name="threshold" value="DEBUG" />
+        <param name="threshold" value="ERROR" />
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
         </layout>
@@ -21,7 +21,7 @@
     </category>
 
     <root>
-        <priority value ="error" />
+        <priority value ="debug" />
         <appender-ref ref="STDOUT" />
     </root>
 </log4j:configuration>
