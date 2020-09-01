@@ -102,19 +102,4 @@ public class HttpRemoteServiceImpl implements HttpRemoteService {
         return connectAndGetResponse(httpPost);
     }
 
-
-    public Header findHeader(final HttpResponse response, final String headerName) {
-        Header[] headers = response.getHeaders(headerName);
-
-        if (headers == null || headers.length < 1) {
-            return null;
-        }
-
-        return headers[0];
-    }
-
-    public String findAndParseHeader(final HttpResponse response, final String headerName) {
-        Header header = findHeader(response, headerName);
-        return header == null ? null : header.getValue();
-    }
 }

@@ -12,7 +12,18 @@ public interface HttpRemoteService {
 
     HttpResponse post(String reqPath, String request) throws UnsupportedEncodingException, JsReportException, URISyntaxException;
 
-    Header findHeader(HttpResponse response, String headerName);
+    default Header findHeader(HttpResponse response, String headerName) {
+        Header[] headers = response.getHeaders(headerName);
 
-    String findAndParseHeader(HttpResponse response, String headerName);
+        if (headers == null || headers.length < 1) {
+            return null;
+        }
+
+        return headers[0];
+    }
+
+    default String findAndParseHeader(HttpResponse response, String headerName) {
+        Header header = findHeader(response, headerName);
+        return header == null ? null : header.getValue();
+    }
 }
