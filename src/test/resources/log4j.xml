@@ -21,7 +21,7 @@
     </category>
 
     <root>
-        <priority value ="debug" />
+        <priority value ="error" />
         <appender-ref ref="STDOUT" />
     </root>
 </log4j:configuration>
