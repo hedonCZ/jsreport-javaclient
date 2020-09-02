@@ -56,7 +56,7 @@ class TemplateServiceITSpec extends Specification {
     def testPut_Error() {
         setup:
 
-        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://localhost:9080")
         TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
         when:
@@ -97,7 +97,7 @@ class TemplateServiceITSpec extends Specification {
     def testRemove_Error() {
         setup:
 
-        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://localhost:9080")
         TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
         when:
