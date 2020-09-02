@@ -23,7 +23,7 @@ class TemplateServiceITSpec extends Specification {
     def testPutAndRemove_OK () {
         setup:
 
-        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+        HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://localhost:9080")
         TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
 
         when:

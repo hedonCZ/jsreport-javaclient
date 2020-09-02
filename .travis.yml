@@ -1,15 +1,11 @@
 language: java
 
-addons:
-  hosts:
-    - jsreport
-
 services:
   - docker
 
 before_install:
   - docker pull jsreport/jsreport:2.9.0
-  - docker run -d -p 9080:5488 --hostname jsreport jsreport/jsreport:2.9.0
+  - docker run -d -p 9080:5488 jsreport/jsreport:2.9.0
 
 script:
   - mvn integration-test -B -P allTests

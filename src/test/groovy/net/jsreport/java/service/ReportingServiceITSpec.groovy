@@ -20,7 +20,7 @@ class ReportingServiceITSpec extends Specification {
     private static final String PDF_TEXT_DATA_CONTENT = "Hello jsreport!"
 
     @Shared
-    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://jsreport:9080")
+    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://localhost:9080")
 
     @Shared
     private ReportingService reportingService = new ReportingServiceImpl(httpRemoteService)
