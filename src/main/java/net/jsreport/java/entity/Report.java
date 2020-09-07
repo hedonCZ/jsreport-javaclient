@@ -1,9 +1,6 @@
 package net.jsreport.java.entity;
 
-import org.apache.http.Header;
-
 import java.io.InputStream;
-import java.io.OutputStream;
 
 public class Report {
 
@@ -15,12 +12,12 @@ public class Report {
     /**
      * Report content type like application/pdf
      */
-    private Header ContentType;
+    private String contentType;
 
     /**
      * Report file extension like "html" or "pdf"
      */
-    private String FileExtension;
+    private String fileExtension;
 
     /**
      * Optional pernament link to report
@@ -35,20 +32,20 @@ public class Report {
         this.content = content;
     }
 
-    public Header getContentType() {
-        return ContentType;
+    public String getContentType() {
+        return contentType;
     }
 
-    public void setContentType(Header contentType) {
-        ContentType = contentType;
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 
     public String getFileExtension() {
-        return FileExtension;
+        return fileExtension;
     }
 
     public void setFileExtension(String fileExtension) {
-        FileExtension = fileExtension;
+        this.fileExtension = fileExtension;
     }
 
     public String getPermanentLink() {

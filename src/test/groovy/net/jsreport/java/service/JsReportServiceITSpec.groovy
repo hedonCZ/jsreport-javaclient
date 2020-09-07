@@ -12,21 +12,14 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ReportingServiceITSpec extends Specification {
+class JsReportServiceITSpec extends Specification {
 
-    private static final Gson GSON = new Gson()
     private static final PDFTextStripper PDF_TEXT_STRIPPER = new PDFTextStripper()
     private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
     private static final String PDF_TEXT_DATA_CONTENT = "Hello jsreport!"
 
     @Shared
-    private HttpRemoteService httpRemoteService = new HttpRemoteServiceImpl("http://localhost:9080")
-
-    @Shared
-    private ReportingService reportingService = new ReportingServiceImpl(httpRemoteService)
-
-    @Shared
-    private TemplateService templateService = new TemplateServiceImpl(httpRemoteService)
+    private JsReportServiceImpl jsReportService = new JsReportServiceImpl("http://localhost:9080")
 
     @Shared
     CreateTemplateRequest templateRequest =
@@ -47,6 +40,16 @@ class ReportingServiceITSpec extends Specification {
             )
 
     @Shared
+    CreateTemplateRequest templateRequestForTemplates =
+            new CreateTemplateRequest(
+                    name: "test-api-template",
+                    content: "<h1>${PDF_TEXT_CONTENT}</h1>",
+                    recipe: "chrome-pdf",
+                    engine: "handlebars"
+            )
+
+
+    @Shared
     Template testingTemplate
 
     @Shared
@@ -54,13 +57,13 @@ class ReportingServiceITSpec extends Specification {
 
     def setupSpec() {
         try {
-            testingTemplate = templateService.putTemplate(templateRequest)
+            testingTemplate = jsReportService.putTemplate(templateRequest)
         } catch(Throwable e) {
             println "Sink exception: ${e.getMessage()} on creating: ${templateRequest}"
         }
 
         try {
-            testingDataTemplate = templateService.putTemplate(templateDataRequest)
+            testingDataTemplate = jsReportService.putTemplate(templateDataRequest)
         } catch(Throwable e) {
             println "Sink exception: ${e.getMessage()} on creating: ${templateDataRequest}"
         }
@@ -68,13 +71,13 @@ class ReportingServiceITSpec extends Specification {
 
     def cleanupSpec() {
         try {
-            templateService.removeTemplate(testingTemplate._id)
+            jsReportService.removeTemplate(testingTemplate._id)
         } catch(Throwable e) {
             println "Sink exception: ${e.getMessage()} on removing: ${testingTemplate}"
         }
 
         try {
-            templateService.removeTemplate(testingDataTemplate._id)
+            jsReportService.removeTemplate(testingDataTemplate._id)
         } catch(Throwable e) {
             println "Sink exception: ${e.getMessage()} on removing: ${templateDataRequest}"
         }
@@ -88,7 +91,7 @@ class ReportingServiceITSpec extends Specification {
         renderRequest.template = template
         renderRequest.data = data
 
-        Report report = reportingService.render(renderRequest)
+        Report report = jsReportService.render(renderRequest)
 
         then:
 
@@ -116,7 +119,7 @@ class ReportingServiceITSpec extends Specification {
 
         Throwable caught = null
         try {
-            reportingService.render(renderRequest)
+            jsReportService.render(renderRequest)
         } catch (Throwable e) {
             caught = e
         }
@@ -138,13 +141,14 @@ class ReportingServiceITSpec extends Specification {
         new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
 
     }
-
+    
+/*
     @Unroll
     def testOtherRenderMethods_OK() {
         when:
 
-        Report reportByStringObject = reportingService.render(template.shortid, data)
-        Report reportByStringString = reportingService.render(template.shortid, GSON.toJson(data))
+        Report reportByStringObject = jsReportService.render(template.shortid, data)
+        Report reportByStringString = jsReportService.render(template.shortid, GSON.toJson(data))
 
         then:
 
@@ -157,14 +161,16 @@ class ReportingServiceITSpec extends Specification {
         new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
         new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
     }
+*/
 
+/*
     @Unroll
     def testRenderByOtherMethods_Error() {
         when:
 
         Throwable caught = null
         try {
-            reportingService.render(shortId, data)
+            jsReportService.render(shortId, data)
         } catch (Throwable e) {
             caught = e
         }
@@ -189,14 +195,16 @@ class ReportingServiceITSpec extends Specification {
         "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some", "data" ]
         null        | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some", "data" ]
     }
+*/
 
+/*
     @Unroll
     def testRenderByStringObject_Error() {
         when:
 
         Throwable caught = null
         try {
-            reportingService.render(shortId, data)
+            jsReportService.render(shortId, data)
         } catch (Throwable e) {
             caught = e
         }
@@ -218,14 +226,102 @@ class ReportingServiceITSpec extends Specification {
         null        | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
 
     }
+*/
 
-    void assertReport(Report report, String pdfContent) {
+    def testPutAndRemoveTemplate_OK() {
+        when:
+
+        Template template1 = jsReportService.putTemplate(templateRequestForTemplates)
+        jsReportService.removeTemplate(template1.get_id())
+        Template template2 = jsReportService.putTemplate(templateRequestForTemplates)
+
+        try {
+            Template temp = jsReportService.putTemplate(templateRequestForTemplates)
+            assert false
+        } catch(JsReportException e) {
+            println "Duplication insert fails correctly. Get exception: ${e}"
+        }
+
+        then:
+
+        assertTemplate(template1, PDF_TEXT_CONTENT)
+        assertTemplate(template2, PDF_TEXT_CONTENT)
+        assert template2.shortid != template1.shortid
+
+        cleanup:
+        // removing not existing do not matter
+        jsReportService.removeTemplate(template1.get_id())
+        jsReportService.removeTemplate(template2.get_id())
+
+    }
+
+    @Unroll
+    def testPutTemplate_Error() {
+        when:
+
+        Throwable caught = null
+        CreateTemplateRequest createTemplateRequest = new CreateTemplateRequest()
+
+        try {
+            jsReportService.putTemplate(createTemplateRequest)
+        } catch (Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught != null
+        assert caught.class == JsReportException.class
+        assert caught.getMessage() == text
+
+        where:
+
+        request                                                                                                             | text
+        new CreateTemplateRequest()                                                                                         | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test")                                                                     | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(content: "invalid-test")                                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(recipe: "invalid-test")                                                                   | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(engine: "invalid-test")                                                                   | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", recipe: "invalid")                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", recipe: "invalid")                         | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", engine: "invalid")                                                  | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test",  engine: "invalid")                        | "Invalid status code (500) !!!"
+        new CreateTemplateRequest(name: "invalid-test", content: "invalid-test",  engine: "invalid", recipe: "invalid")     | "Invalid status code (500) !!!"
+    }
+
+    def testRemoveTemplate_Error() {
+        when:
+
+        Throwable caught = null
+        try {
+            jsReportService.removeTemplate("invalid")
+        } catch(Throwable e) {
+            caught = e
+        }
+
+        then:
+
+        assert caught == null
+    }
+
+
+
+    private static void assertTemplate(Template template, String text) {
+        assert template != null
+        assert template._id != null
+        assert template.shortid != null
+        assert template.getContent().contains(text)
+    }
+
+    static void assertReport(Report report, String pdfContent) {
         assert report != null : "Rendered report is null!"
         assert report.getContentType() != null : "Rendered report do not have set Content type header!"
-        assert report.getContentType().getValue() == "application/pdf"
+        assert report.getContentType() == "application/pdf"
 
         if (pdfContent != null) {
             assert PDF_TEXT_STRIPPER.getText(PDDocument.load(report.getContent())).trim() == pdfContent.trim()
         }
     }
+
+
 }
