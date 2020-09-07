@@ -19,10 +19,10 @@ class JsReportServiceITSpec extends Specification {
     private static final String PDF_TEXT_DATA_CONTENT = "Hello jsreport!"
 
     @Shared
-    private JsReportServiceImpl jsReportService = new JsReportServiceImpl("http://jsreport:9080")
+    private JsReportServiceImpl jsReportService = new JsReportServiceImpl("http://localhost:9080")
 
     @Shared
-    private JsReportServiceImpl jsReportServiceAuth = new JsReportServiceImpl("http://jsreport:10080", "admin", "xxx")
+    private JsReportServiceImpl jsReportServiceAuth = new JsReportServiceImpl("http://localhost:10080", "admin", "xxx")
 
     @Shared
     CreateTemplateRequest templateRequest =
