@@ -7,7 +7,7 @@ import net.jsreport.java.dto.CreateTemplateRequest;
 import net.jsreport.java.dto.RenderTemplateRequest;
 import net.jsreport.java.entity.Report;
 import net.jsreport.java.entity.Template;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -21,18 +21,41 @@ public class JsReportServiceImpl implements JsReportService {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
-    private String username;
-    private String password;
-
     private JsReportRetrofitService jsreportRetrofitService;
 
     public JsReportServiceImpl(String baseServerUrl, String username, String password) {
-        this(baseServerUrl);
+        Gson gson = new GsonBuilder().setLenient().create();
 
-        this.username = username;
-        this.password = password;
+        OkHttpClient okHttpClient =
+                new OkHttpClient()
+                        .newBuilder()
+                        .addInterceptor(new Interceptor() {
+                            @Override
+                            public okhttp3.Response intercept(Chain chain) throws IOException {
+                                Request originalRequest = chain.request();
 
-        // TODO -> add authentication interceptor
+                                Request.Builder builder =
+                                        originalRequest
+                                                .newBuilder()
+                                                .header(
+                                                        HEADER_AUTHORIZATION,
+                                                        Credentials.basic(username, password)
+                                                );
+
+                                Request newRequest = builder.build();
+                                return chain.proceed(newRequest);
+                            }
+                        })
+                        .build();
+
+        Retrofit retrofit =
+                new Retrofit.Builder()
+                        .baseUrl(baseServerUrl)
+                        .client(okHttpClient)
+                        .addConverterFactory(GsonConverterFactory.create(gson))
+                        .build();
+
+        jsreportRetrofitService = retrofit.create(JsReportRetrofitService.class);
     }
 
     public JsReportServiceImpl(String baseServerUrl) {
@@ -44,22 +67,6 @@ public class JsReportServiceImpl implements JsReportService {
                 .build();
 
         jsreportRetrofitService = retrofit.create(JsReportRetrofitService.class);
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     @Override
