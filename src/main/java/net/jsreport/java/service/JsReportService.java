@@ -1,18 +1,20 @@
 package net.jsreport.java.service;
 
 import net.jsreport.java.JsReportException;
-import net.jsreport.java.dto.CreateTemplateRequest;
-import net.jsreport.java.dto.RenderTemplateRequest;
-import net.jsreport.java.entity.Report;
-import net.jsreport.java.entity.Template;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import net.jsreport.java.dto.Options;
+import net.jsreport.java.dto.RenderRequest;
+import net.jsreport.java.dto.Report;
+import net.jsreport.java.dto.Template;
+
+import java.util.Map;
 
 public interface JsReportService {
-    Report render(RenderTemplateRequest renderTemplateRequest) throws JsReportException;
+    Report render(RenderRequest renderRequest) throws JsReportException;
+    Report render(Map<String, Object> renderRequest) throws JsReportException;
+    Report render(String templateName, Object data) throws JsReportException;
+    Report render(String templateName, Object data, Options options) throws JsReportException;
 
-    Template putTemplate(CreateTemplateRequest createTemplateRequest) throws JsReportException;
+    Template putTemplate(Template template) throws JsReportException;
 
     void removeTemplate(String id) throws JsReportException;
-
 }

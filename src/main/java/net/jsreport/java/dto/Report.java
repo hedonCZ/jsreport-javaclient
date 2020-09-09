@@ -1,4 +1,4 @@
-package net.jsreport.java.entity;
+package net.jsreport.java.dto;
 
 import java.io.InputStream;
 

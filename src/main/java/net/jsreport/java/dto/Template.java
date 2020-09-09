@@ -1,6 +1,16 @@
-package net.jsreport.java.entity;
+package net.jsreport.java.dto;
+
+import java.util.List;
 
 public class Template {
+
+    public Template() {
+
+    }
+
+    public Template (String name) {
+        this.name = name;
+    }
 
     private String _id;
 
@@ -39,10 +49,35 @@ public class Template {
      * */
     private Phantom phantom;
 
-    /**
-     * Set this object to adds additional options. Properties are serialized to template.
-     * */
-    private Object additionalOptions;
+    private Chrome chrome;
+    private Docx docx;
+    private ChromeImage chromeImage;
+    private HtmlToXlsx htmlToXlsx;
+    private OfficePassword officePassword;
+    private PdfMeta pdfMeta;
+    private List<PdfOperation> pdfOperations;
+    private PdfPassword pdfPassword;
+    private PdfSign pdfSign;
+    private Pptx pptx;
+    private List<Script> scripts;
+    private StaticPdf staticPdf;
+    private Xlsx xlsx;
+
+    public Docx getDocx() {
+        return docx;
+    }
+
+    public void setDocx(Docx docx) {
+        this.docx = docx;
+    }
+
+    public Chrome getChrome() {
+        return chrome;
+    }
+
+    public void setChrome(Chrome chrome) {
+        this.chrome = chrome;
+    }
 
     public String get_id() {
         return _id;
@@ -106,13 +141,5 @@ public class Template {
 
     public void setPhantom(Phantom phantom) {
         this.phantom = phantom;
-    }
-
-    public Object getAdditionalOptions() {
-        return additionalOptions;
-    }
-
-    public void setAdditionalOptions(Object additionalOptions) {
-        this.additionalOptions = additionalOptions;
     }
 }
