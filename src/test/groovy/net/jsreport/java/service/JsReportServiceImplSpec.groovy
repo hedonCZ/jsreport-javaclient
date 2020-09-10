@@ -1,8 +1,8 @@
 package net.jsreport.java.service
 
 import net.jsreport.java.JsReportException
-import net.jsreport.java.dto.CreateTemplateRequest
-import net.jsreport.java.entity.Template
+
+import net.jsreport.java.dto.Template
 import okhttp3.MediaType
 import okhttp3.ResponseBody
 import okio.BufferedSource
@@ -11,7 +11,6 @@ import retrofit2.Response
 import spock.lang.Specification
 
 class JsReportServiceImplSpec extends Specification {
-
 
     static class FakeResponseBody extends ResponseBody {
         @Override
@@ -34,7 +33,7 @@ class JsReportServiceImplSpec extends Specification {
         when:
 
         JsReportServiceImpl jsReportService = prepareServiceWithResponse(Response.success(new Template(name: "test")))
-        def template = jsReportService.putTemplate(new CreateTemplateRequest())
+        def template = jsReportService.putTemplate(new Template())
 
         then:
 
@@ -46,7 +45,7 @@ class JsReportServiceImplSpec extends Specification {
         when:
 
         JsReportServiceImpl jsReportService = prepareServiceWithResponse(Response.error(400, new FakeResponseBody()))
-        jsReportService.putTemplate(new CreateTemplateRequest())
+        jsReportService.putTemplate(new Template())
 
         then:
 
@@ -87,7 +86,7 @@ class JsReportServiceImplSpec extends Specification {
                 return mockCall
             }
 
-            putTemplate(_) >> { CreateTemplateRequest request ->
+            putTemplate(_) >> { Template request ->
                 Call<Template> mockCall = Mock(Call) {
                     execute() >> { return response }
                 }

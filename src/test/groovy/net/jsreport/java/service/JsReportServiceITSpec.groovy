@@ -2,10 +2,10 @@ package net.jsreport.java.service
 
 
 import net.jsreport.java.JsReportException
-import net.jsreport.java.dto.CreateTemplateRequest
-import net.jsreport.java.dto.RenderTemplateRequest
-import net.jsreport.java.entity.Report
-import net.jsreport.java.entity.Template
+
+import net.jsreport.java.dto.RenderRequest
+import net.jsreport.java.dto.Report
+import net.jsreport.java.dto.Template
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import spock.lang.Shared
@@ -25,130 +25,112 @@ class JsReportServiceITSpec extends Specification {
     private JsReportServiceImpl jsReportServiceAuth = new JsReportServiceImpl("http://localhost:10080", "admin", "xxx")
 
     @Shared
-    CreateTemplateRequest templateRequest =
-            new CreateTemplateRequest(
-                    name: "test-api",
-                    content: "<h1>${PDF_TEXT_CONTENT}</h1>",
-                    recipe: "chrome-pdf",
-                    engine: "handlebars"
-            )
-
-    @Shared
-    CreateTemplateRequest templateDataRequest =
-            new CreateTemplateRequest(
-                    name: "test-data",
+    Template anonymousTemplate =
+            new Template(
                     content: "<h1>Hello {{user}}!</h1>",
                     recipe: "chrome-pdf",
                     engine: "handlebars"
             )
 
     @Shared
-    CreateTemplateRequest templateRequestForTemplates =
-            new CreateTemplateRequest(
-                    name: "test-api-template",
-                    content: "<h1>${PDF_TEXT_CONTENT}</h1>",
+    Template persistedTemplate =
+            new Template(
+                    name: "myTemplate",
+                    shortid: "myShortid",
+                    content: "<h1>Hello {{user}}!</h1>",
                     recipe: "chrome-pdf",
                     engine: "handlebars"
             )
 
-
-    @Shared
-    Template testingTemplate
-
-    @Shared
-    Template testingDataTemplate
-
-//    def setupSpec() {
-//        try {
-//            testingTemplate = jsReportService.putTemplate(templateRequest)
-//        } catch(Throwable e) {
-//            println "Sink exception: ${e.getMessage()} on creating: ${templateRequest}"
-//        }
-//
-//        try {
-//            testingDataTemplate = jsReportService.putTemplate(templateDataRequest)
-//        } catch(Throwable e) {
-//            println "Sink exception: ${e.getMessage()} on creating: ${templateDataRequest}"
-//        }
-//    }
-//
-//    def cleanupSpec() {
-//        try {
-//            jsReportService.removeTemplate(testingTemplate._id)
-//        } catch(Throwable e) {
-//            println "Sink exception: ${e.getMessage()} on removing: ${testingTemplate}"
-//        }
-//
-//        try {
-//            jsReportService.removeTemplate(testingDataTemplate._id)
-//        } catch(Throwable e) {
-//            println "Sink exception: ${e.getMessage()} on removing: ${templateDataRequest}"
-//        }
-//    }
-
     @Unroll
-    def testRenderByRequest_OK() {
+    def testRenderRequest_OK() {
+
         setup:
 
-        def testingTemplate = service.putTemplate(templateRequest)
-        def testingDataTemplate = service.putTemplate(templateDataRequest)
+        persistedTemplate = service.putTemplate(persistedTemplate)
 
         when:
 
-        Template template
-        if (data) {
-            if (useShortId) {
-                template = new Template(shortid: testingDataTemplate.shortid)
-            } else {
-                template = new Template(name: "test-data")
-            }
-        } else {
-            if (useShortId) {
-                template = new Template(shortid: testingTemplate.shortid)
-            } else {
-                template = new Template(name: "test-api")
-            }
-        }
-
-        RenderTemplateRequest renderRequest = new RenderTemplateRequest()
+        RenderRequest renderRequest = new RenderRequest()
         renderRequest.template = template
-        renderRequest.data = data
+        renderRequest.data = [ "user" : "jsreport" ]
 
         Report report = service.render(renderRequest)
 
         then:
 
-        assertReport(report, text)
+        assertReport(report, PDF_TEXT_DATA_CONTENT)
 
         cleanup:
 
-        if (testingTemplate) {
-            service.removeTemplate(testingTemplate._id)
-        }
-
-        if (testingDataTemplate) {
-            service.removeTemplate(testingDataTemplate._id)
-        }
+        service.removeTemplate(persistedTemplate._id)
 
         where:
 
-        service             | useShortId    | text                  | data
-        jsReportService     | false         | PDF_TEXT_CONTENT      | null
-        jsReportService     | true          | PDF_TEXT_CONTENT      | null
-        jsReportService     | false         | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
-        jsReportService     | true          | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
-        jsReportServiceAuth | false         | PDF_TEXT_CONTENT      | null
-        jsReportServiceAuth | true          | PDF_TEXT_CONTENT      | null
-        jsReportServiceAuth | false         | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
-        jsReportServiceAuth | true          | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
+        service             | template
+        jsReportService     | anonymousTemplate
+        jsReportService     | new Template(name: persistedTemplate.name)
+        jsReportServiceAuth | anonymousTemplate
+        jsReportService     | new Template(shortid: persistedTemplate.shortid)
+    }
 
+    @Unroll
+    def testRenderMap_OK() {
+
+        setup:
+
+        persistedTemplate = service.putTemplate(persistedTemplate)
+
+        when:
+
+        Report report = service.render(map)
+
+        then:
+
+        assertReport(report, PDF_TEXT_DATA_CONTENT)
+
+        cleanup:
+
+        service.removeTemplate(persistedTemplate._id)
+
+        where:
+
+        service             | map
+        jsReportService     | [ "template": [ "name": persistedTemplate.name ], "data": [ "user" : "jsreport" ] ]
+    }
+
+    @Unroll
+    def testRenderByNameRequest_OK() {
+
+        setup:
+
+        persistedTemplate = service.putTemplate(persistedTemplate)
+
+        when:
+
+        Report report = service.render(persistedTemplate.name, [ "user" : "jsreport" ])
+
+        then:
+
+        assertReport(report, PDF_TEXT_DATA_CONTENT)
+
+        cleanup:
+
+        service.removeTemplate(persistedTemplate._id)
+
+        where:
+
+        service << [
+                jsReportService,
+                jsReportServiceAuth
+        ]
     }
 
     @Unroll
     def testRenderByRequest_Errors() {
         setup:
 
-        RenderTemplateRequest renderRequest = new RenderTemplateRequest()
+        RenderRequest renderRequest = new RenderRequest()
         renderRequest.template = template
         renderRequest.data = data
 
@@ -185,18 +167,16 @@ class JsReportServiceITSpec extends Specification {
 
     }
 
-
-
     @Unroll
     def testPutAndRemoveTemplate_OK() {
         when:
 
-        Template template1 = service.putTemplate(templateRequestForTemplates)
+        Template template1 = service.putTemplate(persistedTemplate)
         service.removeTemplate(template1.get_id())
-        Template template2 = service.putTemplate(templateRequestForTemplates)
+        Template template2 = service.putTemplate(persistedTemplate)
 
         try {
-            Template temp = service.putTemplate(templateRequestForTemplates)
+            Template temp = service.putTemplate(persistedTemplate)
             assert false
         } catch(JsReportException e) {
             println "Duplication insert fails correctly. Get exception: ${e}"
@@ -204,9 +184,7 @@ class JsReportServiceITSpec extends Specification {
 
         then:
 
-        assertTemplate(template1, PDF_TEXT_CONTENT)
-        assertTemplate(template2, PDF_TEXT_CONTENT)
-        assert template2.shortid != template1.shortid
+        assertTemplate(template2, persistedTemplate.content)
 
         cleanup:
         // removing not existing do not matter
@@ -226,7 +204,7 @@ class JsReportServiceITSpec extends Specification {
         when:
 
         Throwable caught = null
-        CreateTemplateRequest createTemplateRequest = new CreateTemplateRequest()
+        Template createTemplateRequest = new Template()
 
         try {
             jsReportService.putTemplate(createTemplateRequest)
@@ -243,26 +221,26 @@ class JsReportServiceITSpec extends Specification {
         where:
 
         service             | request                                                                                                        | text
-        jsReportService     | new CreateTemplateRequest()                                                                                    | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportService     | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest()                                                                                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new CreateTemplateRequest(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
+        jsReportService     | new Template()                                                                                    | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
+        jsReportService     | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
+        jsReportService     | new Template(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
+        jsReportService     | new Template(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template()                                                                                    | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
     }
 
     @Unroll
@@ -288,91 +266,6 @@ class JsReportServiceITSpec extends Specification {
         ]
     }
 
-/*
-    @Unroll
-    def testOtherRenderMethods_OK() {
-        when:
-
-        Report reportByStringObject = jsReportService.render(template.shortid, data)
-        Report reportByStringString = jsReportService.render(template.shortid, GSON.toJson(data))
-
-        then:
-
-        assertReport(reportByStringObject, text)
-        assertReport(reportByStringString, text)
-
-        where:
-
-        template                                            | text                  | data
-        new Template(shortid: testingTemplate.shortid)      | PDF_TEXT_CONTENT      | null
-        new Template(shortid: testingDataTemplate.shortid)  | PDF_TEXT_DATA_CONTENT | [ "user" : "jsreport" ]
-    }
-*/
-/*
-    @Unroll
-    def testRenderByStringObject_Error() {
-        when:
-
-        Throwable caught = null
-        try {
-            jsReportService.render(shortId, data)
-        } catch (Throwable e) {
-            caught = e
-        }
-
-        then:
-
-        assert caught != null
-        assert caught.class == exceptionClass
-        assert caught.getMessage() == text
-
-        where:
-
-        shortId     | exceptionClass            | text                              | data
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | null
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | null
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
-        null        | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
-        "not-exist" | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
-
-    }
-*/
-/*
-    @Unroll
-    def testRenderByOtherMethods_Error() {
-        when:
-
-        Throwable caught = null
-        try {
-            jsReportService.render(shortId, data)
-        } catch (Throwable e) {
-            caught = e
-        }
-
-        then:
-
-        assert caught != null
-        assert caught.class == exceptionClass
-        assert caught.getMessage() == text
-
-        where:
-
-        shortId     | exceptionClass            | text                              | data
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | null
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | null
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
-        null        | JsReportException.class   | "Invalid status code (404) !!!"   | "{ \"some\" : \"data\"}"
-        "not-exist" | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | "{ \"invalid\" : \"data\". }"
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
-        "not-exist" | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some", "data" ]
-        null        | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some", "data" ]
-    }
-*/
-
-
     private static void assertTemplate(Template template, String text) {
         assert template != null
         assert template._id != null
@@ -389,6 +282,4 @@ class JsReportServiceITSpec extends Specification {
             assert PDF_TEXT_STRIPPER.getText(PDDocument.load(report.getContent())).trim() == pdfContent.trim()
         }
     }
-
-
 }

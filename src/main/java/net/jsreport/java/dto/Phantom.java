@@ -1,4 +1,4 @@
-package net.jsreport.java.entity;
+package net.jsreport.java.dto;
 
 /**
  * Complex object used to configure phantom-pdf rendering. It's embedded in Template

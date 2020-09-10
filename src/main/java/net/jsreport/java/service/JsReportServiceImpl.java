@@ -3,10 +3,10 @@ package net.jsreport.java.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.jsreport.java.JsReportException;
-import net.jsreport.java.dto.CreateTemplateRequest;
-import net.jsreport.java.dto.RenderTemplateRequest;
-import net.jsreport.java.entity.Report;
-import net.jsreport.java.entity.Template;
+import net.jsreport.java.dto.Options;
+import net.jsreport.java.dto.RenderRequest;
+import net.jsreport.java.dto.Report;
+import net.jsreport.java.dto.Template;
 import okhttp3.*;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -14,6 +14,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class JsReportServiceImpl implements JsReportService {
 
@@ -70,9 +71,38 @@ public class JsReportServiceImpl implements JsReportService {
     }
 
     @Override
-    public Report render(RenderTemplateRequest renderTemplateRequest) throws JsReportException {
-        Call<ResponseBody> callRender = jsreportRetrofitService.render(renderTemplateRequest);
+    public Report render(RenderRequest renderRequest) throws JsReportException {
+        Call<ResponseBody> callRender = jsreportRetrofitService.render(renderRequest);
+        return ProcessResponse(callRender);
+    }
 
+    @Override
+    public Report render(Map<String, Object> renderRequest) throws JsReportException {
+        Call<ResponseBody> callRender = jsreportRetrofitService.render(renderRequest);
+        return ProcessResponse(callRender);
+    }
+
+    @Override
+    public Report render(String templateName, Object data, Options options) throws JsReportException {
+        return render(new RenderRequest(new Template(templateName), data, options));
+    }
+
+    @Override
+    public Report render(String templateName, Object data) throws JsReportException {
+        return render(new RenderRequest(new Template(templateName), data));
+    }
+
+    @Override
+    public Template putTemplate(Template template) throws JsReportException {
+        return JsReportServiceImpl.<Template>processSyncCall(jsreportRetrofitService.putTemplate(template)).body();
+    }
+
+    @Override
+    public void removeTemplate(String id) throws JsReportException {
+        processSyncCall(jsreportRetrofitService.removeTemplate(id));
+    }
+
+    private Report ProcessResponse(Call<ResponseBody> callRender) throws JsReportException {
         try {
             Response<ResponseBody> syncResponse = callRender.execute();
             throwJsReportOnError(syncResponse);
@@ -92,20 +122,8 @@ public class JsReportServiceImpl implements JsReportService {
             return report;
         } catch (IOException e) {
             throw new JsReportException(e);
-
         }
     }
-
-    @Override
-    public Template putTemplate(CreateTemplateRequest createTemplateRequest) throws JsReportException {
-        return JsReportServiceImpl.<Template>processSyncCall(jsreportRetrofitService.putTemplate(createTemplateRequest)).body();
-    }
-
-    @Override
-    public void removeTemplate(String id) throws JsReportException {
-        processSyncCall(jsreportRetrofitService.removeTemplate(id));
-    }
-
     private static <R> Response<R> processSyncCall(Call<?> call) throws JsReportException {
         try {
             Response<?> response = call.execute();
