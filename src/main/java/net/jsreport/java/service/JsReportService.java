@@ -7,6 +7,7 @@ import net.jsreport.java.dto.Report;
 import net.jsreport.java.dto.Template;
 
 import java.util.Map;
+import java.util.concurrent.Future;
 
 public interface JsReportService {
     Report render(RenderRequest renderRequest) throws JsReportException;
@@ -17,4 +18,7 @@ public interface JsReportService {
     Template putTemplate(Template template) throws JsReportException;
 
     void removeTemplate(String id) throws JsReportException;
+
+    Future<Report> renderAsync(RenderRequest renderTemplateRequest);
+
 }

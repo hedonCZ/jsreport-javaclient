@@ -11,7 +11,11 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Timeout
 import spock.lang.Unroll
+
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Future
 
 class JsReportServiceITSpec extends Specification {
 
@@ -48,7 +52,7 @@ class JsReportServiceITSpec extends Specification {
 
         setup:
 
-        persistedTemplate = service.putTemplate(persistedTemplate)
+        def createdTemplate = service.putTemplate(persistedTemplate)
 
         when:
 
@@ -64,7 +68,9 @@ class JsReportServiceITSpec extends Specification {
 
         cleanup:
 
-        service.removeTemplate(persistedTemplate._id)
+        if (createdTemplate) {
+            service.removeTemplate(createdTemplate._id)
+        }
 
         where:
 
@@ -80,11 +86,17 @@ class JsReportServiceITSpec extends Specification {
 
         setup:
 
-        persistedTemplate = service.putTemplate(persistedTemplate)
+        def createdTemplate = service.putTemplate(persistedTemplate)
 
         when:
 
-        Report report = service.render(map)
+        Report report = service.render(
+                [ "template":
+                          [ "name": createdTemplate.name ],
+                  "data":
+                          [ "user" : "jsreport" ]
+                ]
+        )
 
         then:
 
@@ -92,12 +104,16 @@ class JsReportServiceITSpec extends Specification {
 
         cleanup:
 
-        service.removeTemplate(persistedTemplate._id)
+        if (createdTemplate) {
+            service.removeTemplate(createdTemplate._id)
+        }
 
         where:
 
-        service             | map
-        jsReportService     | [ "template": [ "name": persistedTemplate.name ], "data": [ "user" : "jsreport" ] ]
+        service << [
+                jsReportService,
+                jsReportServiceAuth
+        ]
     }
 
     @Unroll
@@ -105,7 +121,7 @@ class JsReportServiceITSpec extends Specification {
 
         setup:
 
-        persistedTemplate = service.putTemplate(persistedTemplate)
+        def createdTemplate = service.putTemplate(persistedTemplate)
 
         when:
 
@@ -117,7 +133,9 @@ class JsReportServiceITSpec extends Specification {
 
         cleanup:
 
-        service.removeTemplate(persistedTemplate._id)
+        if (createdTemplate) {
+            service.removeTemplate(createdTemplate._id)
+        }
 
         where:
 
@@ -126,6 +144,89 @@ class JsReportServiceITSpec extends Specification {
                 jsReportServiceAuth
         ]
     }
+
+    @Unroll
+    @Timeout(15)
+    def testRenderByRequestAsync_OK() {
+        setup:
+
+        def testingTemplate = service.putTemplate(persistedTemplate)
+
+        when:
+
+        RenderRequest renderRequest = new RenderRequest()
+        renderRequest.template = template
+        renderRequest.data = [ "user" : "jsreport" ]
+
+        Future<Report> futureReport = service.renderAsync(renderRequest)
+
+        then:
+
+        assertReport(futureReport.get(), PDF_TEXT_DATA_CONTENT)
+
+        cleanup:
+
+        if (testingTemplate) {
+            service.removeTemplate(testingTemplate._id)
+        }
+
+        where:
+
+        service             | template
+        jsReportService     | anonymousTemplate
+        jsReportService     | new Template(name: persistedTemplate.name)
+        jsReportService     | new Template(shortid: persistedTemplate.shortid)
+        jsReportServiceAuth | anonymousTemplate
+        jsReportServiceAuth | new Template(name: persistedTemplate.name)
+        jsReportServiceAuth | new Template(shortid: persistedTemplate.shortid)
+
+    }
+
+
+    @Unroll
+    @Timeout(15)
+    def testRenderByRequestAsync_Errors() {
+        setup:
+
+        RenderRequest renderRequest = new RenderRequest()
+        renderRequest.template = template
+        renderRequest.data = data
+
+        when:
+
+        Future<Report> reportFuture= service.renderAsync(renderRequest)
+
+        then:
+
+        def caught = null
+        try {
+            reportFuture.get()
+        } catch(ExecutionException e) {
+            caught = e.getCause()
+        }
+
+        assert caught != null
+        assert caught.class == exceptionClass
+        assert caught.getMessage() == text
+
+        where:
+
+        service             |template                                | exceptionClass            | text                              | data
+        jsReportService     |new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        jsReportService     |new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        jsReportService     |new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | null
+        jsReportService     |new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        jsReportService     |new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        jsReportService     |new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
+        jsReportServiceAuth |new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        jsReportServiceAuth |new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | null
+        jsReportServiceAuth |new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | null
+        jsReportServiceAuth |new Template(name: "not-exist")         | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        jsReportServiceAuth |new Template(shortid: "not-exist")      | JsReportException.class   | "Invalid status code (404) !!!"   | [ "some" : "data" ]
+        jsReportServiceAuth |new Template()                          | JsReportException.class   | "Invalid status code (400) !!!"   | [ "some" : "data" ]
+
+    }
+
 
     @Unroll
     def testRenderByRequest_Errors() {

@@ -14,6 +14,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.Map;
 
 public class JsReportServiceImpl implements JsReportService {
@@ -102,6 +104,42 @@ public class JsReportServiceImpl implements JsReportService {
         processSyncCall(jsreportRetrofitService.removeTemplate(id));
     }
 
+    @Override
+    public Future<Report> renderAsync(RenderRequest renderTemplateRequest) {
+        CompletableFuture<Report> future = new CompletableFuture<>();
+
+        Call<ResponseBody> call = jsreportRetrofitService.render(renderTemplateRequest);
+
+        call.enqueue(new retrofit2.Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    if (response.body() != null) {
+                        Report report = new Report();
+                        report.setContent(response.body().byteStream());
+                        report.setContentType(response.headers().get(HEADER_CONTENT_TYPE));
+                        report.setFileExtension(response.headers().get(JsReportServiceImpl.HEADER_FILE_EXTENSION));
+                        future.complete(report);
+                    } else {
+                        future.completeExceptionally(new JsReportException("Invalid body response from server! Returns empty body!"));
+
+                    }
+                } else {
+                    future.completeExceptionally(new JsReportException(String.format("Invalid status code (%d) !!!", response.code())));
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                future.completeExceptionally(new JsReportException(t));
+
+            }
+        });
+
+        return future;
+    }
+
     private Report ProcessResponse(Call<ResponseBody> callRender) throws JsReportException {
         try {
             Response<ResponseBody> syncResponse = callRender.execute();
@@ -124,6 +162,7 @@ public class JsReportServiceImpl implements JsReportService {
             throw new JsReportException(e);
         }
     }
+
     private static <R> Response<R> processSyncCall(Call<?> call) throws JsReportException {
         try {
             Response<?> response = call.execute();
