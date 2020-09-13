@@ -18,7 +18,7 @@ public class Chrome {
     private Boolean waitForNetworkIddle;
     private String headerTemplate;
     private String footerTemplate;
-    private String mediaType;
+    private MediaType mediaType;
     private String url;
 
     public void setScale(String scale) {
@@ -89,7 +89,7 @@ public class Chrome {
         this.footerTemplate = footerTemplate;
     }
 
-    public void setMediaType(String mediaType) {
+    public void setMediaType(MediaType mediaType) {
         this.mediaType = mediaType;
     }
 
@@ -165,7 +165,7 @@ public class Chrome {
         return footerTemplate;
     }
 
-    public String getMediaType() {
+    public MediaType getMediaType() {
         return mediaType;
     }
 

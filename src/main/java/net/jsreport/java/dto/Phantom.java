@@ -34,13 +34,13 @@ public class Phantom {
     /**
      * Paper orientation, possible values "landscape" and "portrait"
      */
-    private String orientation;
+    private PhantomOrientation orientation;
 
     /**
      * Paper format, possible values "A5", "A4", "A3", "Letter", "Tabloid", "Legal"
      * width or height specification takes precedence
      */
-    private String format;
+    private PhantomFormat format;
 
     /**
      * Paper width like 2cm
@@ -94,19 +94,19 @@ public class Phantom {
         this.footerHeight = footerHeight;
     }
 
-    public String getOrientation() {
+    public PhantomOrientation getOrientation() {
         return orientation;
     }
 
-    public void setOrientation(String orientation) {
+    public void setOrientation(PhantomOrientation orientation) {
         this.orientation = orientation;
     }
 
-    public String getFormat() {
+    public PhantomFormat getFormat() {
         return format;
     }
 
-    public void setFormat(String format) {
+    public void setFormat(PhantomFormat format) {
         this.format = format;
     }
 

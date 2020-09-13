@@ -2,7 +2,8 @@ package net.jsreport.java.service
 
 
 import net.jsreport.java.JsReportException
-
+import net.jsreport.java.dto.Engine
+import net.jsreport.java.dto.Recipe
 import net.jsreport.java.dto.RenderRequest
 import net.jsreport.java.dto.Report
 import net.jsreport.java.dto.Template
@@ -28,8 +29,8 @@ class JsReportServiceITSpec extends Specification {
     Template anonymousTemplate =
             new Template(
                     content: "<h1>Hello {{user}}!</h1>",
-                    recipe: "chrome-pdf",
-                    engine: "handlebars"
+                    recipe: Recipe.CHROME_PDF,
+                    engine: Engine.HANDLEBARS
             )
 
     @Shared
@@ -38,8 +39,8 @@ class JsReportServiceITSpec extends Specification {
                     name: "myTemplate",
                     shortid: "myShortid",
                     content: "<h1>Hello {{user}}!</h1>",
-                    recipe: "chrome-pdf",
-                    engine: "handlebars"
+                    recipe: Recipe.CHROME_PDF,
+                    engine: Engine.HANDLEBARS
             )
 
     @Unroll
@@ -224,23 +225,9 @@ class JsReportServiceITSpec extends Specification {
         jsReportService     | new Template()                                                                                    | "Invalid status code (500) !!!"
         jsReportService     | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
         jsReportService     | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
-        jsReportService     | new Template(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportService     | new Template(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
         jsReportServiceAuth | new Template()                                                                                    | "Invalid status code (500) !!!"
         jsReportServiceAuth | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
         jsReportServiceAuth | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(recipe: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(engine: "invalid-test")                                                              | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test", recipe: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", recipe: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test", engine: "invalid")                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid")                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test", content: "invalid-test", engine: "invalid", recipe: "invalid") | "Invalid status code (500) !!!"
     }
 
     @Unroll

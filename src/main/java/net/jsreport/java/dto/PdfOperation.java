@@ -1,17 +1,17 @@
 package net.jsreport.java.dto;
 
 public class PdfOperation {
-    private String type;
+    private PdfOperationType type;
     private Boolean mergeToFront;
     private Boolean renderForEveryPage;
     private Boolean mergeWholeDocument;
     private String templateShortid;
 
-    public String getType() {
+    public PdfOperationType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(PdfOperationType type) {
         this.type = type;
     }
 
