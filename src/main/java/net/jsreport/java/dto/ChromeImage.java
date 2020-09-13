@@ -11,7 +11,7 @@ public class ChromeImage {
     private BigDecimal clipHeight;
     private BigDecimal clipWidth;
     private Boolean omitBackground;
-    private String mediaType;
+    private MediaType mediaType;
     private Boolean waitForJS;
     private boolean waitForNetworkIddle;
     private String url;
@@ -80,11 +80,11 @@ public class ChromeImage {
         this.omitBackground = omitBackground;
     }
 
-    public String getMediaType() {
+    public MediaType getMediaType() {
         return mediaType;
     }
 
-    public void setMediaType(String mediaType) {
+    public void setMediaType(MediaType mediaType) {
         this.mediaType = mediaType;
     }
 

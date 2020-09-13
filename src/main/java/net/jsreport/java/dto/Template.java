@@ -32,12 +32,12 @@ public class Template {
     /**
      * Used javascript templating engine like "jsrender" or "handlebars"
      * */
-    private String engine;
+    private Engine engine;
 
     /**
      * Used recipe defining rendering process like "html", "phantom-pdf" or "fop"
      * */
-    private String recipe;
+    private Recipe recipe;
 
     /**
      * Readable name, does not need to be unique
@@ -111,19 +111,19 @@ public class Template {
         this.helpers = helpers;
     }
 
-    public String getEngine() {
+    public Engine getEngine() {
         return engine;
     }
 
-    public void setEngine(String engine) {
+    public void setEngine(Engine engine) {
         this.engine = engine;
     }
 
-    public String getRecipe() {
+    public Recipe getRecipe() {
         return recipe;
     }
 
-    public void setRecipe(String recipe) {
+    public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
     }
 
