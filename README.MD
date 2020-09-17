@@ -17,6 +17,8 @@ Install [maven](https://maven.apache.org/) dependency:
 
 Assuming your [jsreport server](https://jsreport.net/) is reachable on `https://localhost:5488`, you can render a report this way:
 ```java
+JsReportService reportingService = new JsReportServiceImpl("http://localhost:5488");
+
 Template template = new Template();
 template.setContent("Hello world from {{message}}");
 template.setEngine(Engine.HANDLEBARS);
