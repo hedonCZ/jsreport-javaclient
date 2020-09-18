@@ -2,6 +2,7 @@
 
 # Java SDK for jsreport
 [![Build Status](https://travis-ci.org/hedonCZ/jsreport-javaclient.png?branch=master)](https://travis-ci.org/hedonCZ/jsreport-javaclient)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hedoncz/jsreport-javaclient/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.hedoncz/jsreport-javaclient)
 
 **Java client for [jsreport](https://jsreport.net) reporting server**
 
@@ -10,8 +11,9 @@
 Install [maven](https://maven.apache.org/) dependency:
 ```xml
 <dependency>
-	<groupId>io.github.hedoncz</groupId>
-	<artifactId>jsreport-javaclient</artifactId>
+    <groupId>io.github.hedoncz</groupId>
+    <artifactId>jsreport-javaclient</artifactId>
+    <version>1.0.1</version>
 </dependency>
 ```
 
