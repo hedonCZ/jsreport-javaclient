@@ -118,7 +118,7 @@ public class JsReportServiceImpl implements JsReportService {
                         Report report = new Report();
                         report.setContent(response.body().byteStream());
                         report.setContentType(response.headers().get(HEADER_CONTENT_TYPE));
-                        report.setFileExtension(response.headers().get(JsReportServiceImpl.HEADER_FILE_EXTENSION));
+                        report.setFileExtension(response.headers().get(HEADER_FILE_EXTENSION));
                         future.complete(report);
                     } else {
                         future.completeExceptionally(new JsReportException("Invalid body response from server! Returns empty body!"));
@@ -150,7 +150,7 @@ public class JsReportServiceImpl implements JsReportService {
             if (syncResponse.body() != null) {
                 report.setContent(syncResponse.body().byteStream());
                 report.setContentType(syncResponse.headers().get(HEADER_CONTENT_TYPE));
-                report.setFileExtension(syncResponse.headers().get(JsReportServiceImpl.HEADER_FILE_EXTENSION));
+                report.setFileExtension(syncResponse.headers().get(HEADER_FILE_EXTENSION));
 
             } else {
                 throw new JsReportException("Invalid body response from server! Returns empty body!");
