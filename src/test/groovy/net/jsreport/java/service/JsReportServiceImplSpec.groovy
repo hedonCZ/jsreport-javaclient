@@ -1,7 +1,6 @@
 package net.jsreport.java.service
 
 import net.jsreport.java.JsReportException
-
 import net.jsreport.java.dto.Template
 import okhttp3.MediaType
 import okhttp3.ResponseBody

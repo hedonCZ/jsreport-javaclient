@@ -1,12 +1,7 @@
 package net.jsreport.java.service
 
-
 import net.jsreport.java.JsReportException
-import net.jsreport.java.dto.Engine
-import net.jsreport.java.dto.Recipe
-import net.jsreport.java.dto.RenderRequest
-import net.jsreport.java.dto.Report
-import net.jsreport.java.dto.Template
+import net.jsreport.java.dto.*
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import spock.lang.Shared
