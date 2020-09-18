@@ -15,6 +15,7 @@ hs_err_pid*
 .idea
 *.iml
 *.ipr
+*.iws
 
 # target
 target/
