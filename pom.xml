@@ -57,7 +57,7 @@
 
         <!-- lib versions -->
         <log4j.version>1.2.17</log4j.version>
-        <pdfbox.version>2.0.20</pdfbox.version>
+        <pdfbox.version>2.0.24</pdfbox.version>
         <spock-core.version>2.0-M3-groovy-3.0</spock-core.version>
         <commons-io.version>2.7</commons-io.version>
         <retrofit.version>2.9.0</retrofit.version>
