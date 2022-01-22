@@ -13,9 +13,11 @@ hs_err_pid*
 
 # idea
 .idea
+.shelf
 *.iml
 *.ipr
 *.iws
+pom.xml.versionsBackup
 
 # target
 target/
