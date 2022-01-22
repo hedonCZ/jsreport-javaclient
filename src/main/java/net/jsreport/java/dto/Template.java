@@ -142,4 +142,92 @@ public class Template {
     public void setPhantom(Phantom phantom) {
         this.phantom = phantom;
     }
+
+    public ChromeImage getChromeImage() {
+        return chromeImage;
+    }
+
+    public void setChromeImage(ChromeImage chromeImage) {
+        this.chromeImage = chromeImage;
+    }
+
+    public HtmlToXlsx getHtmlToXlsx() {
+        return htmlToXlsx;
+    }
+
+    public void setHtmlToXlsx(HtmlToXlsx htmlToXlsx) {
+        this.htmlToXlsx = htmlToXlsx;
+    }
+
+    public OfficePassword getOfficePassword() {
+        return officePassword;
+    }
+
+    public void setOfficePassword(OfficePassword officePassword) {
+        this.officePassword = officePassword;
+    }
+
+    public PdfMeta getPdfMeta() {
+        return pdfMeta;
+    }
+
+    public void setPdfMeta(PdfMeta pdfMeta) {
+        this.pdfMeta = pdfMeta;
+    }
+
+    public List<PdfOperation> getPdfOperations() {
+        return pdfOperations;
+    }
+
+    public void setPdfOperations(List<PdfOperation> pdfOperations) {
+        this.pdfOperations = pdfOperations;
+    }
+
+    public PdfPassword getPdfPassword() {
+        return pdfPassword;
+    }
+
+    public void setPdfPassword(PdfPassword pdfPassword) {
+        this.pdfPassword = pdfPassword;
+    }
+
+    public PdfSign getPdfSign() {
+        return pdfSign;
+    }
+
+    public void setPdfSign(PdfSign pdfSign) {
+        this.pdfSign = pdfSign;
+    }
+
+    public Pptx getPptx() {
+        return pptx;
+    }
+
+    public void setPptx(Pptx pptx) {
+        this.pptx = pptx;
+    }
+
+    public List<Script> getScripts() {
+        return scripts;
+    }
+
+    public void setScripts(List<Script> scripts) {
+        this.scripts = scripts;
+    }
+
+    public StaticPdf getStaticPdf() {
+        return staticPdf;
+    }
+
+    public void setStaticPdf(StaticPdf staticPdf) {
+        this.staticPdf = staticPdf;
+    }
+
+    public Xlsx getXlsx() {
+        return xlsx;
+    }
+
+    public void setXlsx(Xlsx xlsx) {
+        this.xlsx = xlsx;
+    }
 }
