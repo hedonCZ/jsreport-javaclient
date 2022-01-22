@@ -1,0 +1,26 @@
+name: main 
+
+on:
+  push:
+    branches:
+    - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+              with:
+                java-version: '11'
+                distribution: 'adopt'
+
+      - run: nvm install
+
+      - run: docker run -d -p 9080:5488 jsreport/jsreport:2.9.0
+      - run: docker run -d -p 10080:5488 -e "extensions_authentication_admin_username=admin" -e "extensions_authentication_admin_password=xxx" -e "extensions_authentication_cookieSession_secret=123456" jsreport/jsreport:2.9.0
+
+      - run: mvn integration-test -B -P allTests
