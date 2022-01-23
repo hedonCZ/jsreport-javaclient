@@ -1,4 +1,7 @@
-package net.jsreport.java.dto;
+package net.jsreport.java.rest;
+
+import net.jsreport.java.dto.Options;
+import net.jsreport.java.dto.Template;
 
 public class RenderRequest {
 

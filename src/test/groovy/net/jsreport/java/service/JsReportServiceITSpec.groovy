@@ -3,6 +3,7 @@ package net.jsreport.java.service
 import com.google.gson.Gson
 import net.jsreport.java.JsReportException
 import net.jsreport.java.dto.*
+import net.jsreport.java.rest.RenderRequest
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import spock.lang.Shared
@@ -43,6 +44,16 @@ class JsReportServiceITSpec extends Specification {
                     engine: Engine.HANDLEBARS
             )
 
+    @Shared
+    Template persistedTemplate2 =
+            new Template(
+                    name: "myTemplate2",
+                    shortid: "myShortid2",
+                    content: "<h2>Hello {{user}}!</h2>",
+                    recipe: Recipe.CHROME_PDF,
+                    engine: Engine.HANDLEBARS
+            )
+
     @Unroll
     def testRenderRequest_OK() {
 
@@ -79,7 +90,6 @@ class JsReportServiceITSpec extends Specification {
 
     @Unroll
     def testRenderMap_OK() {
-
         setup:
 
         def createdTemplate = service.putTemplate(persistedTemplate)
@@ -220,7 +230,7 @@ class JsReportServiceITSpec extends Specification {
 
         when:
 
-        Future<Report> reportFuture= service.renderAsync(renderRequest)
+        Future<Report> reportFuture = service.renderAsync(renderRequest)
 
         then:
 
@@ -328,6 +338,65 @@ class JsReportServiceITSpec extends Specification {
     }
 
     @Unroll
+    def testListAndGetTemplates() {
+        when:
+
+        assert service.listTemplates().isEmpty()
+
+        Template putTemplateOne = service.putTemplate(persistedTemplate)
+
+        List<Template> oneTemplateList = service.listTemplates()
+        assert oneTemplateList.size() == 1
+        assert oneTemplateList.get(0) != null
+        assert oneTemplateList.get(0).get_id() == putTemplateOne.get_id()
+
+        Template templateListOne = oneTemplateList.get(0)
+        Template templateOne = service.getTemplate(templateListOne.get_id())
+
+        assertTemplate(templateOne, persistedTemplate.content)
+        assert templateListOne.get_id() == templateOne.get_id()
+
+        Template putTemplateTwo = service.putTemplate(persistedTemplate2)
+
+        List<Template> twoTemplatesList = service.listTemplates()
+        assert twoTemplatesList.size() == 2
+        assert twoTemplatesList.get(0) != null
+        assert twoTemplatesList.get(1) != null
+
+        templateListOne = twoTemplatesList.get(0)
+        templateOne = service.getTemplate(templateListOne.get_id())
+        Template templateListTwo = twoTemplatesList.get(1)
+        Template templateTwo = service.getTemplate(templateListTwo.get_id());
+
+        assertTemplate(templateOne, persistedTemplate.content)
+        assert templateListOne.get_id() == templateOne.get_id()
+
+        assertTemplate(templateTwo, persistedTemplate2.content)
+        assert templateListTwo.get_id() == templateTwo.get_id()
+
+        then:
+
+        {}
+
+        cleanup:
+
+        if (putTemplateOne) {
+            service.removeTemplate(putTemplateOne.get_id())
+        }
+
+        if (putTemplateTwo) {
+            service.removeTemplate(putTemplateTwo.get_id())
+        }
+
+        where:
+
+        service << [
+                jsReportService,
+                jsReportServiceAuth
+        ]
+    }
+
+    @Unroll
     def testPutTemplate_Error() {
         when:
 
@@ -335,7 +404,7 @@ class JsReportServiceITSpec extends Specification {
         Template createTemplateRequest = new Template()
 
         try {
-            jsReportService.putTemplate(createTemplateRequest)
+            service.putTemplate(createTemplateRequest)
         } catch (Throwable e) {
             caught = e
         }
@@ -348,13 +417,13 @@ class JsReportServiceITSpec extends Specification {
 
         where:
 
-        service             | request                                                                                                        | text
-        jsReportService     | new Template()                                                                                    | "Invalid status code (500) !!!"
-        jsReportService     | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
-        jsReportService     | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template()                                                                                    | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(name: "invalid-test")                                                                | "Invalid status code (500) !!!"
-        jsReportServiceAuth | new Template(content: "invalid-test")                                                             | "Invalid status code (500) !!!"
+        service             | request                                   | text
+        jsReportService     | new Template()                            | "Invalid status code (500) !!!"
+        jsReportService     | new Template(name: "invalid-test")        | "Invalid status code (500) !!!"
+        jsReportService     | new Template(content: "invalid-test")     | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template()                            | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(name: "invalid-test")        | "Invalid status code (500) !!!"
+        jsReportServiceAuth | new Template(content: "invalid-test")     | "Invalid status code (500) !!!"
     }
 
     @Unroll

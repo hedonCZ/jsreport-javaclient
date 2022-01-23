@@ -3,10 +3,10 @@ package net.jsreport.java.service;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.jsreport.java.JsReportException;
-import net.jsreport.java.dto.Options;
-import net.jsreport.java.dto.RenderRequest;
-import net.jsreport.java.dto.Report;
-import net.jsreport.java.dto.Template;
+import net.jsreport.java.dto.*;
+import net.jsreport.java.rest.GetTemplateResponse;
+import net.jsreport.java.rest.ListTemplateResponse;
+import net.jsreport.java.rest.RenderRequest;
 import okhttp3.*;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -14,9 +14,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-import java.util.Map;
 
 public class JsReportServiceImpl implements JsReportService {
 
@@ -97,6 +98,16 @@ public class JsReportServiceImpl implements JsReportService {
     @Override
     public Template putTemplate(Template template) throws JsReportException {
         return JsReportServiceImpl.<Template>processSyncCall(jsreportRetrofitService.putTemplate(template)).body();
+    }
+
+    @Override
+    public Template getTemplate(String id) throws JsReportException {
+        return JsReportServiceImpl.<GetTemplateResponse>processSyncCall(jsreportRetrofitService.getTemplate(id)).body().getTemplate();
+    }
+
+    @Override
+    public List<Template> listTemplates() throws JsReportException {
+        return JsReportServiceImpl.<ListTemplateResponse>processSyncCall(jsreportRetrofitService.listTemplates()).body().getValue();
     }
 
     @Override
