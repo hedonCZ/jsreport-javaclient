@@ -1,5 +1,6 @@
 package net.jsreport.java.service
 
+import com.google.gson.Gson
 import net.jsreport.java.JsReportException
 import net.jsreport.java.dto.*
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -101,6 +102,36 @@ class JsReportServiceITSpec extends Specification {
 
         if (createdTemplate) {
             service.removeTemplate(createdTemplate._id)
+        }
+
+        where:
+
+        service << [
+                jsReportService,
+                jsReportServiceAuth
+        ]
+    }
+
+    @Unroll
+    def testRenderByJson() {
+        setup:
+
+        def createdTemplate = service.putTemplate(persistedTemplate)
+
+        when:
+
+        String jsonString = "{ \"template\" : { \"name\" : \"${persistedTemplate.name}\" }, \"data\" : { \"user\" : \"jsreport\" } }"
+        Map<String, Object> serializedJson = new Gson().fromJson(jsonString, Map<String, Object>.class)
+        Report report = service.render(serializedJson)
+
+        then:
+
+        assertReport(report, PDF_TEXT_DATA_CONTENT)
+
+        cleanup:
+
+        if (createdTemplate) {
+            service.removeTemplate(createdTemplate.get_id())
         }
 
         where:
