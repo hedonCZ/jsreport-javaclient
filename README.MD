@@ -1,7 +1,7 @@
 
 
 # Java SDK for jsreport
-[![Build Status](https://travis-ci.org/hedonCZ/jsreport-javaclient.png?branch=master)](https://travis-ci.org/hedonCZ/jsreport-javaclient)
+[![build status](https://github.com/hedonCZ/jsreport-javaclient/actions/workflows/build.yml/badge.svg)](https://github.com/hedonCZ/jsreport-javaclient/actions)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.hedoncz/jsreport-javaclient/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.hedoncz/jsreport-javaclient)
 
 **Java client for [jsreport](https://jsreport.net) reporting server**
