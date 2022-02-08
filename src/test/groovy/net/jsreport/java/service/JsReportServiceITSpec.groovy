@@ -157,6 +157,7 @@ class JsReportServiceITSpec extends Specification {
         ]
     }
 
+    @Unroll
     def testRenderTimeout_OK() {
         setup:
 
@@ -188,6 +189,7 @@ class JsReportServiceITSpec extends Specification {
         ]
     }
 
+    @Unroll
     def testRenderTimeout_Errors() {
         setup:
 
