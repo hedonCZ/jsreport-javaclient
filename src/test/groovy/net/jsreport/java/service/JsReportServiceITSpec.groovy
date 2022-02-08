@@ -2,7 +2,10 @@ package net.jsreport.java.service
 
 import com.google.gson.Gson
 import net.jsreport.java.JsReportException
-import net.jsreport.java.dto.*
+import net.jsreport.java.dto.Engine
+import net.jsreport.java.dto.Recipe
+import net.jsreport.java.dto.Report
+import net.jsreport.java.dto.Template
 import net.jsreport.java.rest.RenderRequest
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
@@ -11,20 +14,31 @@ import spock.lang.Specification
 import spock.lang.Timeout
 import spock.lang.Unroll
 
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 
 class JsReportServiceITSpec extends Specification {
 
     private static final PDFTextStripper PDF_TEXT_STRIPPER = new PDFTextStripper()
-    private static final String PDF_TEXT_CONTENT = "Simple test of template call!"
+
     private static final String PDF_TEXT_DATA_CONTENT = "Hello jsreport!"
+
+    private static final ServiceTimeout serviceTimeout = new ServiceTimeout().setReadTimeout(Duration.of(2, ChronoUnit.SECONDS));
 
     @Shared
     private JsReportServiceImpl jsReportService = new JsReportServiceImpl("http://localhost:9080")
 
     @Shared
+    private JsReportServiceImpl jsReportService2secTimeout = new JsReportServiceImpl("http://localhost:9080", serviceTimeout)
+
+    @Shared
     private JsReportServiceImpl jsReportServiceAuth = new JsReportServiceImpl("http://localhost:10080", "admin", "xxx")
+
+    @Shared
+    private JsReportServiceImpl jsReportServiceAuth2secTimeout = new JsReportServiceImpl("http://localhost:10080", "admin", "xxx", serviceTimeout)
+
 
     @Shared
     Template anonymousTemplate =
@@ -52,6 +66,25 @@ class JsReportServiceITSpec extends Specification {
                     content: "<h2>Hello {{user}}!</h2>",
                     recipe: Recipe.CHROME_PDF,
                     engine: Engine.HANDLEBARS
+            )
+
+    @Shared
+    Template longRunningTemplate =
+            new Template(
+                    name: "longRunningTemplate",
+                    shortid: "longRunningTemplate",
+                    content: "<h2>Hello {{user}}!</h2>",
+                    recipe: Recipe.CHROME_PDF,
+                    engine: Engine.HANDLEBARS,
+                    helpers: """
+                            var startTime = new Date().getTime();
+                            while (true) {
+                                var actualTime = new Date().getTime();
+                                if (actualTime - startTime > 5000) {
+                                    break;
+                                }
+                            }
+                    """
             )
 
     @Unroll
@@ -121,6 +154,74 @@ class JsReportServiceITSpec extends Specification {
         service << [
                 jsReportService,
                 jsReportServiceAuth
+        ]
+    }
+
+    def testRenderTimeout_OK() {
+        setup:
+
+        def template = service.putTemplate(longRunningTemplate)
+
+        when:
+
+        RenderRequest renderRequest = new RenderRequest()
+        renderRequest.template = template
+        renderRequest.data = [ "user" : "jsreport" ]
+
+        Report report = service.render(renderRequest)
+
+        then:
+
+        assertReport(report, PDF_TEXT_DATA_CONTENT)
+
+        cleanup:
+
+        if (template) {
+            service.removeTemplate(template._id)
+        }
+
+        where:
+
+        service << [
+                jsReportService,
+                jsReportServiceAuth
+        ]
+    }
+
+    def testRenderTimeout_Errors() {
+        setup:
+
+        def template = service.putTemplate(longRunningTemplate)
+        Throwable caughtException = null
+
+        when:
+
+        RenderRequest renderRequest = new RenderRequest()
+        renderRequest.template = template
+        renderRequest.data = [ "user" : "jsreport" ]
+
+        try {
+            service.render(renderRequest)
+        } catch (JsReportException e) {
+            caughtException = e
+        }
+
+        then:
+
+        assert caughtException != null
+        assert caughtException.class != SocketTimeoutException
+
+        cleanup:
+
+        if (template) {
+            service.removeTemplate(template._id)
+        }
+
+        where:
+
+        service << [
+                jsReportService2secTimeout,
+                jsReportServiceAuth2secTimeout
         ]
     }
 

@@ -25,41 +25,80 @@ public class JsReportServiceImpl implements JsReportService {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
-    private JsReportRetrofitService jsreportRetrofitService;
+    private final JsReportRetrofitService jsreportRetrofitService;
 
-    public JsReportServiceImpl(String baseServerUrl, String username, String password) {
+    private JsReportServiceImpl(String serverBaseUrl, Interceptor authIntercetor, ServiceTimeout serviceTimeout) {
         Gson gson = new GsonBuilder().setLenient().create();
+        OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient().newBuilder();
 
-        OkHttpClient okHttpClient =
-                new OkHttpClient()
-                        .newBuilder()
-                        .addInterceptor(new Interceptor() {
-                            @Override
-                            public okhttp3.Response intercept(Chain chain) throws IOException {
-                                Request originalRequest = chain.request();
+        if (authIntercetor != null) {
+            okHttpClientBuilder.addInterceptor(authIntercetor);
+        }
 
-                                Request.Builder builder =
-                                        originalRequest
-                                                .newBuilder()
-                                                .header(
-                                                        HEADER_AUTHORIZATION,
-                                                        Credentials.basic(username, password)
-                                                );
-
-                                Request newRequest = builder.build();
-                                return chain.proceed(newRequest);
-                            }
-                        })
-                        .build();
+        if (serviceTimeout != null) {
+            okHttpClientBuilder
+                    .callTimeout(serviceTimeout.getCallTimeout())
+                    .connectTimeout(serviceTimeout.getConnectTimeout())
+                    .readTimeout(serviceTimeout.getReadTimeout())
+                    .writeTimeout(serviceTimeout.getWriteTimeout());
+        }
 
         Retrofit retrofit =
                 new Retrofit.Builder()
-                        .baseUrl(baseServerUrl)
-                        .client(okHttpClient)
+                        .baseUrl(serverBaseUrl)
+                        .client(okHttpClientBuilder.build())
                         .addConverterFactory(GsonConverterFactory.create(gson))
                         .build();
 
         jsreportRetrofitService = retrofit.create(JsReportRetrofitService.class);
+    }
+
+    public JsReportServiceImpl(String baseServerUrl, String username, String password, ServiceTimeout serviceTimeout) {
+        this(
+                baseServerUrl,
+                new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+
+                        Request.Builder builder =
+                                originalRequest
+                                        .newBuilder()
+                                        .header(
+                                                HEADER_AUTHORIZATION,
+                                                Credentials.basic(username, password)
+                                        );
+
+                        Request newRequest = builder.build();
+                        return chain.proceed(newRequest);
+                    }
+                },
+                serviceTimeout
+        );
+    }
+
+    public JsReportServiceImpl(String baseServerUrl, String username, String password) {
+        this(
+                baseServerUrl,
+                new Interceptor() {
+                    @Override
+                    public okhttp3.Response intercept(Chain chain) throws IOException {
+                        Request originalRequest = chain.request();
+
+                        Request.Builder builder =
+                                originalRequest
+                                        .newBuilder()
+                                        .header(
+                                                HEADER_AUTHORIZATION,
+                                                Credentials.basic(username, password)
+                                        );
+
+                        Request newRequest = builder.build();
+                        return chain.proceed(newRequest);
+                    }
+                },
+                null
+        );
     }
 
     public JsReportServiceImpl(String baseServerUrl) {
@@ -71,6 +110,10 @@ public class JsReportServiceImpl implements JsReportService {
                 .build();
 
         jsreportRetrofitService = retrofit.create(JsReportRetrofitService.class);
+    }
+
+    public JsReportServiceImpl(String baseServerUrl, ServiceTimeout serviceTimeout) {
+        this(baseServerUrl, null, serviceTimeout);
     }
 
     @Override
