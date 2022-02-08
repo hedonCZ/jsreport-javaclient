@@ -84,8 +84,10 @@ class JsReportServiceITSpec extends Specification {
         service             | template
         jsReportService     | anonymousTemplate
         jsReportService     | new Template(name: persistedTemplate.name)
-        jsReportServiceAuth | anonymousTemplate
         jsReportService     | new Template(shortid: persistedTemplate.shortid)
+        jsReportServiceAuth | anonymousTemplate
+        jsReportServiceAuth | new Template(name: persistedTemplate.name)
+        jsReportServiceAuth | new Template(shortid: persistedTemplate.shortid)
     }
 
     @Unroll
