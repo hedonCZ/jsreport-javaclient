@@ -13,7 +13,7 @@ Install [maven](https://maven.apache.org/) dependency:
 <dependency>
     <groupId>io.github.hedoncz</groupId>
     <artifactId>jsreport-javaclient</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.10</version>
 </dependency>
 ```
 
