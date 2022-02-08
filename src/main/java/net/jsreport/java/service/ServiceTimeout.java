@@ -4,11 +4,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
 /**
- * Handles all values about service call timeout.
- * <br/>
- *
- * For each value <tt>0</tt> means timeout is <tt>disabled</tt>.
- * <br/>
+ * Handles all values about service call timeout. For each value <tt>0</tt> means timeout is <tt>disabled</tt>.
  *
  * @see <a href="https://howtodoinjava.com/retrofit2/connection-timeout-exception">Retrofit 2 – Handle Connection Timeout Exception</a>
  * */
