@@ -61,10 +61,20 @@ https://github.com/hedonCZ/jsreport-java-examples
 
 ## Development
 
+* to run integration tests:
 ```
 mvn install
 docker run -d -p 9080:5488 jsreport/jsreport:2.9.0
 docker run -d -p 10080:5488 -e "extensions_authentication_admin_username=admin" -e "extensions_authentication_admin_password=xxx" -e "extensions_authentication_cookieSession_secret=123456" jsreport/jsreport:2.9.0
 mvn integration-test -B -P allTests
 ```
+
+* to run integration tests with JaCoCo coverage report: 
+```
+mvn install
+docker run -d -p 9080:5488 jsreport/jsreport:2.9.0
+docker run -d -p 10080:5488 -e "extensions_authentication_admin_username=admin" -e "extensions_authentication_admin_password=xxx" -e "extensions_authentication_cookieSession_secret=123456" jsreport/jsreport:2.9.0
+mvn verify -B -P allTests
+```
+
 I accept contributions, don't hesitate to fill an issue and discuss PRs.
