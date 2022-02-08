@@ -76,13 +76,13 @@ public class JsReportServiceImpl implements JsReportService {
     @Override
     public Report render(RenderRequest renderRequest) throws JsReportException {
         Call<ResponseBody> callRender = jsreportRetrofitService.render(renderRequest);
-        return ProcessResponse(callRender);
+        return processResponse(callRender);
     }
 
     @Override
     public Report render(Map<String, Object> renderRequest) throws JsReportException {
         Call<ResponseBody> callRender = jsreportRetrofitService.render(renderRequest);
-        return ProcessResponse(callRender);
+        return processResponse(callRender);
     }
 
     @Override
@@ -151,7 +151,7 @@ public class JsReportServiceImpl implements JsReportService {
         return future;
     }
 
-    private Report ProcessResponse(Call<ResponseBody> callRender) throws JsReportException {
+    private Report processResponse(Call<ResponseBody> callRender) throws JsReportException {
         try {
             Response<ResponseBody> syncResponse = callRender.execute();
             throwJsReportOnError(syncResponse);
