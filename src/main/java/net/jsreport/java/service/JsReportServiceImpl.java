@@ -25,7 +25,7 @@ public class JsReportServiceImpl implements JsReportService {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
-    private final JsReportRetrofitService jsreportRetrofitService;
+    private JsReportRetrofitService jsreportRetrofitService;
 
     private JsReportServiceImpl(String serverBaseUrl, Interceptor authIntercetor, ServiceTimeout serviceTimeout) {
         Gson gson = new GsonBuilder().setLenient().create();
