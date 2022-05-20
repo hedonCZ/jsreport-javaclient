@@ -61,7 +61,7 @@
         <spock-core.version>2.0-M3-groovy-3.0</spock-core.version>
         <commons-io.version>2.7</commons-io.version>
         <retrofit.version>2.9.0</retrofit.version>
-        <gson.version>2.8.6</gson.version>
+        <gson.version>2.8.9</gson.version>
         <objenesis.version>3.1</objenesis.version>
 
         <!-- plugins versions-->
