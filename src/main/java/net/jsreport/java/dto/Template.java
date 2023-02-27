@@ -58,6 +58,8 @@ public class Template {
     private List<PdfOperation> pdfOperations;
     private PdfPassword pdfPassword;
     private PdfSign pdfSign;
+    private PdfA pdfA;
+    private PdfAccessibility pdfAccessibility;
     private Pptx pptx;
     private List<Script> scripts;
     private StaticPdf staticPdf;
@@ -173,6 +175,22 @@ public class Template {
 
     public void setPdfMeta(PdfMeta pdfMeta) {
         this.pdfMeta = pdfMeta;
+    }
+
+    public PdfA getPdfA() {
+        return pdfA;
+    }
+
+    public void setPdfA(PdfA pdfA) {
+        this.pdfA = pdfA;
+    }
+
+    public PdfAccessibility getPdfAccessibility() {
+        return pdfAccessibility;
+    }
+
+    public void setPdfAccessibility(PdfAccessibility pdfAccessibility) {
+        this.pdfAccessibility = pdfAccessibility;
     }
 
     public List<PdfOperation> getPdfOperations() {
