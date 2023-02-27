@@ -17,6 +17,8 @@ public class Options {
 
     private String reportName;
 
+    private LocalizationOptions localization;
+
     public String getBase() {
         return base;
     }
@@ -39,6 +41,14 @@ public class Options {
 
     public void setReports(ReportsOptions reports) {
         this.reports = reports;
+    }
+
+    public LocalizationOptions getLocalization() {
+        return this.localization;
+    }
+
+     public void setLocalization(LocalizationOptions localization) {
+        this.localization = localization;
     }
 
     public String getReportName() {
