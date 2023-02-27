@@ -6,7 +6,7 @@
 
     <groupId>io.github.hedoncz</groupId>
     <artifactId>jsreport-javaclient</artifactId>
-    <version>1.0.12-SNAPSHOT</version>
+    <version>1.0.13</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
